@@ -545,6 +545,11 @@ async function sha256(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
   return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
+function showError(title, e) {
+  const m = modal(`<h3>⚠️ ${esc(title)}</h3><p class="sub" style="color:var(--ink)">${esc(e && e.message || e)}</p>
+    <div class="row" style="justify-content:flex-end"><button class="btn primary" data-x>OK</button></div>`);
+  $('[data-x]', m.el).onclick = m.close;
+}
 function modal(html, { wide = false } = {}) {
   const root = $('#modal-root');
   root.innerHTML = `<div class="modal-bg"><div class="modal card ${wide ? 'wide' : ''}">${html}</div></div>`;
@@ -679,6 +684,16 @@ const FirebaseStore = (() => {
     const data = r.data || {}; Object.keys(data).forEach(k => { if (isNumObj(data[k])) data[k] = toArr(data[k]); });
     return { id, ...r, data, up: r.up ? Object.keys(r.up) : [], answered: !!r.answered };
   };
+  // Surface real problems instead of hanging silently
+  const friendly = e => {
+    const m = String(e && (e.code || e.message) || e);
+    if (/permission/i.test(m)) return new Error('Permission denied — publish the Realtime Database rules (Rules tab), they are still locked.');
+    return e instanceof Error ? e : new Error(m);
+  };
+  const T = (p, what) => Promise.race([
+    Promise.resolve(p).catch(e => { throw friendly(e); }),
+    new Promise((_, rej) => setTimeout(() => rej(new Error('No reply from Realtime Database while ' + what + '. Check that databaseURL in CONFIG exactly matches the URL on Realtime Database → Data.')), 12000))
+  ]);
   const listen = (q, fn) => { const h = q.on('value', fn, e => console.error('Realtime Database:', e.message)); return () => q.off('value', h); };
   return {
     mode: 'firebase',
@@ -689,13 +704,13 @@ const FirebaseStore = (() => {
       firebase.initializeApp(CONFIG.firebaseConfig);
       db = firebase.database();
     },
-    async list() { const s = await P().once('value'); return Object.values(s.val() || {}).map(normP).filter(Boolean).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)); },
-    async get(code) { const s = await P(code).once('value'); return normP(s.val()); },
-    async save(p) { await P(p.code).update({ ...clone(p), updatedAt: Date.now() }); },
-    async update(code, patch) { await P(code).update(clone(patch)); },
-    async remove(code) { await db.ref().update({ ['presentations/' + code]: null, ['responses/' + code]: null }); },
+    async list() { const s = await T(P().once('value'), 'loading presentations'); return Object.values(s.val() || {}).map(normP).filter(Boolean).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)); },
+    async get(code) { const s = await T(P(code).once('value'), 'reading a presentation'); return normP(s.val()); },
+    async save(p) { await T(P(p.code).update({ ...clone(p), updatedAt: Date.now() }), 'saving'); },
+    async update(code, patch) { await T(P(code).update(clone(patch)), 'updating'); },
+    async remove(code) { await T(db.ref().update({ ['presentations/' + code]: null, ['responses/' + code]: null }), 'deleting'); },
     watch(code, cb) { return listen(P(code), s => cb(normP(s.val()))); },
-    async addResponse(code, slideId, data) { await R(code).push({ slideId, voter: voterId(), data: clone(data), ts: Date.now(), answered: false }); },
+    async addResponse(code, slideId, data) { await T(R(code).push({ slideId, voter: voterId(), data: clone(data), ts: Date.now(), answered: false }), 'sending an answer'); },
     watchResponses(code, slideId, cb) { return listen(R(code).orderByChild('slideId').equalTo(slideId), s => cb(Object.entries(s.val() || {}).map(([id, r]) => normR(id, r)))); },
     async toggleUpvote(code, id, vid, has) { await R(code).child(id + '/up/' + vid).set(has ? null : true); },
     async setAnswered(code, id, v) { await R(code).child(id + '/answered').set(!!v); },
@@ -911,7 +926,9 @@ async function viewDashboard() {
   $('[data-go]').onclick = () => window.open(location.href.split('#')[0] + '#/join', '_blank');
   $('#logout').onclick = () => { SS.del('mm_auth'); go(''); };
   $('#newPres').onclick = createPresentation;
-  const list = await Store.list();
+  let list;
+  try { list = await Store.list(); }
+  catch (e) { console.error(e); const el = $('#plist'); if (el) el.innerHTML = `<div class="card" style="padding:24px;border-color:var(--pink)"><h3 style="margin-bottom:8px">⚠️ Can't reach the database</h3><p style="font-weight:700">${esc(e.message)}</p></div>`; return; }
   const el = $('#plist'); if (!el) return;
   el.innerHTML = `<div class="pres-grid">
     <button class="new-card" id="newCard"><div><div class="plus">＋</div>Create a presentation</div></button>
@@ -945,7 +962,7 @@ function createPresentation() {
       const code = await newCode();
       await Store.save({ code, title, slides: [newSlide('mc')], current: 0, live: false, hideResults: false, locked: false, reveal: false, resets: {}, createdAt: Date.now() });
       m.close(); toast('Created! Presenter ID ' + fmtCode(code), 'ok'); go('edit/' + code);
-    } catch (e) { console.error(e); toast('Could not create presentation', 'err'); $('#npGo', m.el).disabled = false; }
+    } catch (e) { console.error(e); showError('Could not create the session', e); $('#npGo', m.el).disabled = false; }
   };
   $('#npGo', m.el).onclick = create; t.onkeydown = e => { if (e.key === 'Enter') create(); };
 }
@@ -1192,7 +1209,7 @@ function viewEditor(code) {
       await Store.save({ code: ed.p.code, title: ed.p.title.trim(), slides: ed.p.slides, current });
       ed.dirty = false; const s = $('#ss'); if (s) { s.classList.remove('dirty'); s.lastElementChild.textContent = 'Saved'; }
       toast('Presentation saved ✓', 'ok'); paintPanel(); return true;
-    } catch (e) { console.error(e); toast('Save failed — ' + (e.message || 'check connection'), 'err'); return false; }
+    } catch (e) { console.error(e); showError('Save failed', e); return false; }
     finally { saving = false; }
   }
   function paintSide() {
