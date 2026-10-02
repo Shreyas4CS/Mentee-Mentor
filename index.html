@@ -848,7 +848,7 @@ function viewLanding() {
   $$('[data-scroll]').forEach(a => a.onclick = e => { e.preventDefault(); $(a.getAttribute('href')).scrollIntoView({ behavior: 'smooth' }); });
   const q = $('#quickCode');
   const joinQuick = () => { const c = q.value.replace(/\D/g, ''); if (c.length !== 6) { q.classList.remove('shake'); void q.offsetWidth; q.classList.add('shake'); return; } go('join/' + c); };
-  $('#quickGo').onclick = joinQuick; q.onkeydown = e => e.key === 'Enter' && joinQuick();
+  $('#quickGo').onclick = joinQuick; q.onkeydown = e => { if (e.key === 'Enter') joinQuick(); };
   const onScroll = () => $('#nav')?.classList.toggle('scrolled', scrollY > 10);
   addEventListener('scroll', onScroll); cleanups.push(() => removeEventListener('scroll', onScroll));
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
@@ -895,7 +895,7 @@ function viewLogin(next) {
       if (next && next !== '#/presenter') location.hash = next; else if (location.hash === '#/presenter') route(); else go('presenter');
     } else { const c = $('.join-card'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); toast('Wrong password', 'err'); pw.select(); }
   };
-  $('#pwGo').onclick = tryIt; pw.onkeydown = e => e.key === 'Enter' && tryIt();
+  $('#pwGo').onclick = tryIt; pw.onkeydown = e => { if (e.key === 'Enter') tryIt(); };
 }
 const miniFoot = () => `<div class="mini-foot">Menti-Mentor by <b>CognoSpace</b> · ${Store.mode === 'demo' ? 'Demo mode (this browser only)' : 'Live sync on'}</div>`;
 
@@ -947,7 +947,7 @@ function createPresentation() {
       m.close(); toast('Created! Presenter ID ' + fmtCode(code), 'ok'); go('edit/' + code);
     } catch (e) { console.error(e); toast('Could not create presentation', 'err'); $('#npGo', m.el).disabled = false; }
   };
-  $('#npGo', m.el).onclick = create; t.onkeydown = e => e.key === 'Enter' && create();
+  $('#npGo', m.el).onclick = create; t.onkeydown = e => { if (e.key === 'Enter') create(); };
 }
 
 /* =====================================================================
@@ -1416,7 +1416,7 @@ function viewJoin() {
     try { const p = await Store.get(v); if (!p) { $('#go').disabled = false; return fail('No session found with that ID'); } go('join/' + v); }
     catch (e) { console.error(e); $('#go').disabled = false; fail('Connection problem — try again'); }
   };
-  $('#go').onclick = join; c.onkeydown = e => e.key === 'Enter' && join();
+  $('#go').onclick = join; c.onkeydown = e => { if (e.key === 'Enter') join(); };
 }
 
 function viewAudience(rawCode) {
@@ -1544,7 +1544,7 @@ function viewAudience(rawCode) {
     if (qin) { const ask = async () => { const t = qin.value.trim(); if (!t) return; $('#qgo').disabled = true;
         try { await Store.addResponse(code, s.id, { text: t }); qin.value = ''; toast('Question sent! 🙌', 'ok'); } catch { toast('Could not send', 'err'); }
         $('#qgo').disabled = false; };
-      $('#qgo').onclick = ask; qin.onkeydown = e => e.key === 'Enter' && ask(); }
+      $('#qgo').onclick = ask; qin.onkeydown = e => { if (e.key === 'Enter') ask(); }; }
     unsubQA = Store.watchResponses(code, s.id, list => {
       const el = $('#qlist'); if (!el) return;
       const sorted = [...list].sort((a, b) => (a.answered - b.answered) || ((b.up || []).length - (a.up || []).length) || a.ts - b.ts);
