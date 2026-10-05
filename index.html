@@ -541,6 +541,29 @@ footer.foot{background:var(--navy);color:#C9CFEA;padding:70px 0 26px;border-top:
 .ff-clock b.low{color:var(--pink)}
 .ff-me{text-align:center;padding:18px;border-radius:18px;background:var(--soft);border:2px dashed #E6D2B8;margin-bottom:16px}
 .ff-me b{display:block;font-family:Fredoka;font-size:44px;color:var(--orange);line-height:1.1}
+.ff-chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:22px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:2px solid var(--navy);background:#fff;font-weight:800;font-size:16px;box-shadow:2px 2px 0 var(--navy);transition:transform .15s var(--spring),background .15s;text-align:left;word-break:break-word}
+.chip:hover{transform:translate(-1px,-1px)}
+.chip.big{font-size:clamp(17px,1.8vw,24px);padding:12px 18px;border-radius:14px;box-shadow:var(--sh-sm)}
+.chip i{font-style:normal;width:22px;height:22px;border-radius:7px;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:12px;flex:none}
+.chip.placed{background:var(--yellow)}
+.ord-lbl{font-size:11.5px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px}
+.ord-ans{min-height:62px;border:2.5px dashed #E1CDB3;border-radius:16px;padding:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;background:#FFFBF6}
+.ord-ans.steps{flex-direction:column;align-items:stretch}
+.ord-ans:empty::before{content:attr(data-ph);color:var(--muted);font-weight:800;font-size:14px;padding:4px}
+.ord-bank{display:flex;flex-wrap:wrap;gap:8px;min-height:46px;margin-bottom:6px}
+.ord-tools{display:flex;justify-content:flex-end;margin-bottom:4px}
+.buzzer{display:grid;place-items:center;width:min(250px,68vw);aspect-ratio:1;margin:14px auto 18px;border-radius:50%;border:6px solid var(--navy);
+  background:radial-gradient(circle at 35% 28%,#FF9DB3,#F2245B 58%,#B5123E);color:#fff;font-family:Fredoka;font-weight:700;font-size:clamp(28px,8vw,38px);letter-spacing:.04em;
+  box-shadow:0 12px 0 #7A0C2A,0 18px 28px rgba(27,37,89,.35);transition:transform .07s,box-shadow .07s;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation}
+.buzzer small{display:block;font-family:Nunito;font-size:13px;font-weight:900;letter-spacing:.12em;opacity:.9}
+.buzzer:active,.buzzer.hit{transform:translateY(10px);box-shadow:0 2px 0 #7A0C2A,0 6px 12px rgba(27,37,89,.3)}
+.buzzer:disabled{opacity:1;pointer-events:none}
+.bz-top{display:flex;align-items:center;gap:16px;width:min(760px,100%);margin:0 auto 18px}
+.bz-top .ff-track{margin:0;flex:1}
+.bz-top b{font-family:Fredoka;font-size:40px;font-weight:700;color:var(--orange);min-width:76px;text-align:right}
+.bz-top b.low{color:var(--pink)}
+.bz-pos{font-family:Fredoka;font-size:64px;font-weight:700;color:var(--pink);line-height:1;margin:6px 0}
 .who{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:13px;color:var(--muted);margin-bottom:10px}
 .who button{color:var(--orange);font-weight:900;text-decoration:underline}
 .spinner{width:46px;height:46px;border-radius:50%;border:5px solid #F1E2CF;border-top-color:var(--orange);animation:spin .8s linear infinite}
@@ -735,7 +758,7 @@ function newSlide(type) {
     case 'form': return { ...s, question: 'Quick workshop feedback', fields: [{ label: 'Your school', type: 'text', req: false }, { label: 'Favourite activity', type: 'text', req: true }, { label: 'Any suggestions?', type: 'textarea', req: false }] };
     case 'pin': return { ...s, question: 'Tap where you would like to explore first', image: PIN_PLACEHOLDER };
     case 'blank': return { ...s, question: '', message: 'Wait for the next question' };
-    case 'fff': return { ...s, question: 'Which sensor measures distance using sound waves?', mode: 'mc', options: ['LDR', 'Ultrasonic sensor', 'IR sensor', 'Thermistor'], correct: 1, answer: '', timeLimit: 20 };
+    case 'fff': return { ...s, question: 'Which sensor measures distance using sound waves?', mode: 'mc', options: ['LDR', 'Ultrasonic sensor', 'IR sensor', 'Thermistor'], correct: 1, answer: '', items: ['Sensors', 'collect', 'data', 'from', 'the', 'environment'], arrange: 'sentence', timeLimit: 20 };
   }
 }
 
@@ -1256,13 +1279,30 @@ function renderResults(slide, res, st = {}) {
 /* ---------- Fastest Fingers First helpers ---------- */
 const FFF_GRACE = 1500;   // ms of network grace after the timer ends
 const fffLimit = s => Math.max(3, Number(s.timeLimit) || 20) * 1000;
-const fffAnswer = (s, d) => s.mode === 'mc' ? (s.options[d.choice] ?? '—') : (d.text || '—');
+const FFF_MODES = { mc: 'Multiple choice', short: 'Short answer', order: 'Arrange in order', open: 'Open ended', buzzer: 'Buzzer' };
+const fffJoin = s => s.arrange === 'steps' ? ' → ' : ' ';
+function fffShuffle(n, seed) {
+  const R = seeded(seed), a = [...Array(n).keys()];
+  for (let i = n - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  if (n > 1 && a.every((v, i) => v === i)) a.push(a.shift());   // never hand out the answer already solved
+  return a;
+}
+function fffAnswer(s, d) {
+  if (s.mode === 'mc') return s.options[d.choice] ?? '—';
+  if (s.mode === 'buzzer') return '🔔 Buzzed';
+  if (s.mode === 'order') return (d.order || []).map(i => s.items[i] ?? '?').join(fffJoin(s)) || '—';
+  return d.text || '—';
+}
 function fffCorrectText(s) {
   if (s.mode === 'mc') return s.correct >= 0 && s.options[s.correct] != null ? s.options[s.correct] : '';
+  if (s.mode === 'order') return (s.items || []).join(fffJoin(s));
+  if (s.mode !== 'short') return '';
   return String(s.answer || '').split(',').map(x => x.trim()).filter(Boolean).join(' / ');
 }
 function fffIsCorrect(s, d) {
   if (s.mode === 'mc') return s.correct >= 0 ? d.choice === s.correct : null;
+  if (s.mode === 'order') { const o = d.order || []; return o.length === (s.items || []).length && o.every((v, i) => v === i); }
+  if (s.mode !== 'short') return null;   // buzzer and open ended are never auto-checked
   const ok = String(s.answer || '').split(',').map(normWord).filter(Boolean);
   return ok.length ? ok.includes(normWord(d.text)) : null;
 }
@@ -1281,7 +1321,7 @@ function fffBoard(s, ranked, { me = null, max = 100 } = {}) {
   const medal = ['🥇', '🥈', '🥉'];
   return `<div class="ff-board">${ranked.slice(0, max).map((r, i) => `<div class="ff-row pop ${r === win ? 'win' : ''} ${r.ok === false ? 'no' : ''} ${me && r.voter === me ? 'me' : ''}" data-k="ff:${r.id}" style="animation-delay:${Math.min(i, 12) * 70}ms">
       <div class="ff-rank ${i < 3 ? 'm' : ''}">${i < 3 ? medal[i] : i + 1}</div>
-      <div class="ff-name">${esc(r.data.name || 'Anonymous')}${r === win ? ' 🏆' : ''}</div>
+      <div class="ff-name">${esc(r.data.name || 'Anonymous')}${r === win ? (s.mode === 'buzzer' ? ' 🔔' : ' 🏆') : ''}</div>
       <div class="ff-ans">${esc(fffAnswer(s, r.data))}</div>
       <div class="ff-time">${r.ms === null ? '' : (r.ms / 1000).toFixed(2) + 's'}</div>
       <div class="ff-mark ${r.ok === true ? 'ok' : r.ok === false ? 'bad' : ''}">${r.ok === true ? '✓' : r.ok === false ? '✗' : ''}</div></div>`).join('')}</div>`;
@@ -1292,10 +1332,20 @@ function renderFFF(slide, res, st) {
   const phase = fs.shown ? 'shown' : !start ? 'idle' : now < start + lim ? 'run' : 'up';
   const answered = fffRanked(slide, res, start).length;
   let key = 'fff:' + slide.id + ':' + phase + ':' + slide.mode, html = '';
-  const opts = slide.mode === 'mc' ? `<div class="ff-opts">${slide.options.map((o, i) => `<div class="ff-opt ${phase === 'shown' && slide.correct === i ? 'ok' : ''}"><i style="background:${PALETTE[i % PALETTE.length]}">${String.fromCharCode(65 + i)}</i>${esc(o)}</div>`).join('')}</div>` : '';
+  const opts = slide.mode === 'mc' ? `<div class="ff-opts">${slide.options.map((o, i) => `<div class="ff-opt ${phase === 'shown' && slide.correct === i ? 'ok' : ''}"><i style="background:${PALETTE[i % PALETTE.length]}">${String.fromCharCode(65 + i)}</i>${esc(o)}</div>`).join('')}</div>`
+    : slide.mode === 'order' ? `<div class="ff-chips">${fffShuffle(slide.items.length, hashStr(slide.id)).map(i => `<span class="chip big">${esc(slide.items[i])}</span>`).join('')}</div>` : '';
+  if (slide.mode === 'buzzer' && (phase === 'run' || phase === 'up')) {
+    // Buzzer: the presenter sees who pressed first, live — no reveal step needed
+    const ranked = fffRanked(slide, res, start), left = Math.max(0, start + lim - now);
+    key += ':' + ranked.map(r => r.id).join(',');
+    html = `<div class="bz-top">${phase === 'run' ? `<div class="ff-track"><div class="ff-fill" data-k="ffb" style="width:${(left / lim * 100).toFixed(1)}%"></div></div><b class="${left <= 5000 ? 'low' : ''}" data-k="fft" data-text>${Math.ceil(left / 1000)}s</b>`
+        : `<div class="ff-sub" style="flex:1">⏰ Buzzers closed · <b>${ranked.length}</b> buzzed in</div>`}</div>
+      ${ranked.length ? fffBoard(slide, ranked) : emptyRes('🔔', phase === 'run' ? 'Waiting for the first buzz…' : 'Nobody buzzed in time')}`;
+    return { key, html };
+  }
   if (phase === 'idle') {
-    html = `<div class="ff-state"><span class="em">⚡</span><h2>Fingers ready?</h2><p>${slide.mode === 'mc' ? 'Multiple choice' : 'Short answer'} · ${lim / 1000} seconds · fastest answer wins</p>
-      ${st.presenter ? '<p style="margin-top:10px">Press <b style="color:var(--ink)">▶ Start timer</b> below to open answers.</p>' : ''}</div>${opts}`;
+    html = `<div class="ff-state"><span class="em">${slide.mode === 'buzzer' ? '🔔' : '⚡'}</span><h2>Fingers ready?</h2><p>${FFF_MODES[slide.mode] || 'Fastest Fingers First'} · ${lim / 1000} seconds · ${slide.mode === 'buzzer' ? 'first to buzz answers first' : slide.mode === 'order' ? 'put them in the right order' : 'fastest answer wins'}</p>
+      ${st.presenter ? `<p style="margin-top:10px">Press <b style="color:var(--ink)">${slide.mode === 'buzzer' ? '🔔 Open buzzers' : '▶ Start timer'}</b> below to begin.</p>` : ''}</div>${opts}`;
   } else if (phase === 'run') {
     const left = Math.max(0, start + lim - now);
     html = `<div><div class="ff-big ${left <= 5000 ? 'low' : ''}" data-k="fft" data-text>${Math.ceil(left / 1000)}</div>
@@ -1333,8 +1383,12 @@ function sampleResponses(slide) {
       case 'form': if (k > 3) continue; data = { values: slide.fields.map(f => f.type === 'textarea' ? 'More hands-on time please!' : 'Sample answer') }; break;
       case 'pin': data = { x: 20 + R() * 60, y: 25 + R() * 50 }; break;
       case 'fff': { if (k > 7) continue; const nm = ['Aarav', 'Diya', 'Kabir', 'Ananya', 'Rohan', 'Meera', 'Ishaan', 'Sana'][k];
-        data = slide.mode === 'mc' ? { name: nm, choice: ri(slide.options.length) } : { name: nm, text: (slide.answer || 'Answer').split(',')[0].trim() || 'Answer' };
-        if (k % 3 === 2 && slide.mode !== 'mc') data.text = 'Not sure'; break; }
+        if (slide.mode === 'mc') data = { name: nm, choice: ri(slide.options.length) };
+        else if (slide.mode === 'buzzer') data = { name: nm, buzz: true };
+        else if (slide.mode === 'order') data = { name: nm, order: k % 3 === 1 ? fffShuffle((slide.items || []).length, k + 7) : [...(slide.items || []).keys()] };
+        else if (slide.mode === 'open') data = { name: nm, text: texts[k % texts.length] };
+        else { data = { name: nm, text: (slide.answer || 'Answer').split(',')[0].trim() || 'Answer' }; if (k % 3 === 2) data.text = 'Not sure'; }
+        break; }
     }
     out.push({ id, slideId: slide.id, voter: 'v' + k, data, ts: slide.type === 'fff' ? 700 + k * 900 + ri(500) : k, up: Array(ri(6)).fill('x'), answered: false });
   }
@@ -1393,6 +1447,7 @@ function viewEditor(code) {
       if (s.type === 'points' && !(s.budget > 0)) return bad('points budget must be positive');
       if (s.type === 'form' && !s.fields.length) return bad('add at least one field');
       if (s.type === 'fff' && s.mode === 'mc' && s.options.length < 2) return bad('add at least 2 options');
+      if (s.type === 'fff' && s.mode === 'order' && (s.items || []).length < 2) return bad('add at least 2 words or steps to arrange');
       if (s.type === 'fff' && !(Number(s.timeLimit) >= 3)) return bad('time limit must be at least 3 seconds');
     }
     return true;
@@ -1490,8 +1545,14 @@ function viewEditor(code) {
       case 'blank': body = `<div class="field"><label>Message</label><input class="input" data-f="message" value="${esc(s.message)}" maxlength="80" placeholder="Wait for the next question"></div>
         <div class="hint">👋 Shows the CognoSpace logo, “Welcome to Mentee-Mentor” and the session name, with this message underneath. Use it as a pause between questions.</div>`; break;
       case 'fff': body = `<div class="field"><label>Answer type</label><select class="input" data-f="mode">
-          <option value="mc" ${s.mode === 'mc' ? 'selected' : ''}>Multiple choice (MCQ)</option><option value="short" ${s.mode === 'short' ? 'selected' : ''}>Short answer</option></select></div>
-        ${s.mode === 'mc' ? `<div class="field"><label>Options</label>${listEd('options', s.options, 'Option')}</div>
+          ${[['mc', 'Multiple choice (MCQ)'], ['short', 'Short answer (checked)'], ['order', 'Arrange in order'], ['open', 'Open ended (no checking)'], ['buzzer', 'Buzzer']].map(([v, l]) => `<option value="${v}" ${s.mode === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+        ${s.mode === 'order' ? `<div class="field"><label>Arrange as</label><select class="input" data-f="arrange">
+            <option value="sentence" ${s.arrange !== 'steps' ? 'selected' : ''}>Words → make a sentence</option><option value="steps" ${s.arrange === 'steps' ? 'selected' : ''}>Steps → put in the right sequence</option></select></div>
+          <div class="field"><label>${s.arrange === 'steps' ? 'Steps' : 'Words'} — in the CORRECT order</label>${listEd('items', s.items || [], s.arrange === 'steps' ? 'Step' : 'Word')}</div>
+          <div class="hint">🔀 Type them in the right order. Every participant gets them shuffled and taps them back into place. Only the exact correct order gets a ✓.</div>`
+        : s.mode === 'buzzer' ? `<div class="hint">🔔 Participants see a big buzzer. Your screen shows <b>who pressed first, live</b>, in order — so you can ask the first person to answer.</div>`
+        : s.mode === 'open' ? `<div class="hint">✍️ Participants type any answer. Nothing is checked — after the timer you see <b>who answered, what they wrote and who sent it first</b>.</div>`
+        : s.mode === 'mc' ? `<div class="field"><label>Options</label>${listEd('options', s.options, 'Option')}</div>
           <div class="field"><label>Correct option</label><select class="input" data-f="correct" data-type="num">
             <option value="-1" ${s.correct < 0 ? 'selected' : ''}>None — rank by speed only</option>
             ${s.options.map((o, i) => `<option value="${i}" ${s.correct === i ? 'selected' : ''}>${String.fromCharCode(65 + i)} · ${esc(o || 'Option ' + (i + 1))}</option>`).join('')}</select></div>`
@@ -1516,7 +1577,8 @@ function viewEditor(code) {
       const t = e.target;
       if (t.dataset.f === 'imageUrl') { s.image = t.value.trim() || PIN_PLACEHOLDER; $('.imgprev', panel).src = s.image; }
       else if (t.dataset.f) { s[t.dataset.f] = t.type === 'checkbox' ? t.checked : t.dataset.type === 'num' ? Number(t.value) : t.value;
-        if (s.type === 'fff' && t.dataset.f === 'mode') { if (s.mode === 'mc' && (!s.options || s.options.length < 2)) s.options = ['Option A', 'Option B']; dirty(); paintPanel(); paintCanvas(); return; } }
+        if (s.type === 'fff' && t.dataset.f === 'mode') { if (s.mode === 'mc' && (!s.options || s.options.length < 2)) s.options = ['Option A', 'Option B'];
+          if (s.mode === 'order' && (!s.items || s.items.length < 2)) { s.items = ['Sensors', 'collect', 'data', 'from', 'the', 'environment']; s.arrange = s.arrange || 'sentence'; } dirty(); paintPanel(); paintCanvas(); return; } }
       else if (t.dataset.l) { s[t.dataset.l][+t.dataset.i] = t.value;
         if (s.type === 'fff' && t.dataset.l === 'options') { const o = $(`[data-f="correct"] option[value="${t.dataset.i}"]`, panel); if (o) o.textContent = String.fromCharCode(65 + +t.dataset.i) + ' · ' + (t.value || 'Option ' + (+t.dataset.i + 1)); } }
       else if (t.dataset.ff) s.fields[+t.dataset.i][t.dataset.ff] = t.type === 'checkbox' ? t.checked : t.value;
@@ -1693,8 +1755,8 @@ function viewPresent(code) {
         ${s.type === 'fff' ? '' : `<button class="btn sm ${p.hideResults ? 'on' : ''}" id="b-hide" title="H">${p.hideResults ? '👁 Show results' : '🙈 Hide results'}</button>`}
         <button class="btn sm ${p.locked ? 'on' : ''}" id="b-lock">${p.locked ? '🔒 Voting closed' : '🔓 Voting open'}</button>
         ${s.type === 'fff' ? (() => { const fs = (p.fffState || {})[s.id] || {}, ph = fffPhase(s);
-          return `<button class="btn sm ${fs.start ? '' : 'mint'}" id="b-fstart" ${fs.start ? 'disabled' : ''}>${!fs.start ? '▶ Start timer' : ph === 'run' ? '⏱ Running…' : '⏰ Time up'}</button>
-          <button class="btn sm ${fs.shown ? 'on' : 'primary'}" id="b-fshow">${fs.shown ? '🙈 Hide leaderboard' : '🏆 Show results'}</button>`; })() : ''}
+          return `<button class="btn sm ${fs.start ? '' : 'mint'}" id="b-fstart" ${fs.start ? 'disabled' : ''}>${!fs.start ? (s.mode === 'buzzer' ? '🔔 Open buzzers' : '▶ Start timer') : ph === 'run' ? '⏱ Running…' : '⏰ Time up'}</button>
+          ${s.mode === 'buzzer' ? '' : `<button class="btn sm ${fs.shown ? 'on' : 'primary'}" id="b-fshow">${fs.shown ? '🙈 Hide leaderboard' : '🏆 Show results'}</button>`}`; })() : ''}
         ${s.type === 'guess' ? `<button class="btn sm ${p.reveal ? 'on' : 'mint'}" id="b-rev">${p.reveal ? 'Hide answer' : '🎯 Reveal answer'}</button>` : ''}
         <button class="btn sm" id="b-reset">↺ Reset</button>
         <button class="btn sm" id="b-fs" title="F">⛶</button></div>`;
@@ -1798,7 +1860,8 @@ function viewAudience(rawCode) {
     if (fs.shown) return fffResults(s, fs);
     if (!fs.start) {
       am.innerHTML = `<div class="card aud-card">${head(s)}${who(true)}<div class="ff-state" style="padding:20px 0"><span class="em">🏁</span><h2 style="font-size:28px">Get ready!</h2>
-        <p>Answers open when the presenter starts the timer.<br>You'll have <b style="color:var(--ink)">${lim / 1000} seconds</b> — be quick! ${s.mode === 'mc' ? 'One tap answers.' : ''}</p></div></div>`;
+        <p>${s.mode === 'buzzer' ? 'The buzzer unlocks when the presenter opens it.<br>Hit it <b style="color:var(--ink)">first</b> to get the first chance to answer! 🔔'
+          : `Answers open when the presenter starts the timer.<br>You'll have <b style="color:var(--ink)">${lim / 1000} seconds</b> — be quick! ${s.mode === 'mc' ? 'One tap answers.' : s.mode === 'order' ? 'Tap the pieces in the right order.' : ''}`}</p></div></div>`;
       return bindWho();
     }
     const clock = `<div class="ff-clock"><div class="ff-track"><div class="ff-fill" id="ffBar" style="width:${Math.max(0, left() / lim * 100)}%"></div></div><b id="ffSec">${Math.max(0, Math.ceil(left() / 1000))}s</b></div>`;
@@ -1810,6 +1873,7 @@ function viewAudience(rawCode) {
     const timeUp = msg => { am.innerHTML = `<div class="card aud-card">${head(s)}<div class="ff-state"><span class="em">⏰</span><h2>Time up!</h2><p>${msg}</p>
       <p style="margin-top:10px">Results appear when the presenter reveals them <span class="dots"><i></i><i></i><i></i></span></p></div></div>`; };
     const mine = LS.get(vk);
+    if (mine !== null && s.mode === 'buzzer') return buzzed(s, fs, Number(mine), left, runTick);
     if (mine !== null) {
       const sec = (Number(mine) / 1000).toFixed(2);
       if (left() <= 0) return timeUp(`Your answer is locked in — you answered in about <b style="color:var(--ink)">${sec}s</b>.`);
@@ -1817,7 +1881,8 @@ function viewAudience(rawCode) {
         <h2>Locked in! ⚡</h2><p>You answered in about <b style="color:var(--ink)">${sec}s</b>. Waiting for the timer to finish…</p></div></div>`;
       return runTick(() => timeUp(`Your answer is locked in — you answered in about <b style="color:var(--ink)">${sec}s</b>.`));
     }
-    if (left() <= 0) return timeUp("You didn't answer this one in time.");
+    if (left() <= 0) return s.mode === 'buzzer' ? timeUpBuzz() : timeUp("You didn't answer this one in time.");
+    function timeUpBuzz() { am.innerHTML = `<div class="card aud-card">${head(s)}<div class="ff-state"><span class="em">⏰</span><h2>Buzzers closed!</h2><p>You didn't buzz in this round. Watch the big screen 👀</p></div></div>`; }
     let sending = false;
     const sendFF = async (data, els) => {
       if (sending) return; if (left() <= 0) { stopTick(); return timeUp("You didn't answer this one in time."); }
@@ -1832,16 +1897,59 @@ function viewAudience(rawCode) {
         <p class="muted" style="font-weight:800;text-align:center;font-size:13px">Tap once — your first tap is your answer</p></div>`;
       const btns = $$('.opt', am);
       btns.forEach(b => b.onclick = () => { b.classList.add('sel'); sendFF({ choice: +b.dataset.i }, btns); });
+    } else if (s.mode === 'buzzer') {
+      am.innerHTML = `<div class="card aud-card">${head(s)}${who(false)}${clock}
+        <button class="buzzer" id="bz">BUZZ!<small>TAP AS FAST AS YOU CAN</small></button></div>`;
+      const bz = $('#bz');
+      const hit = e => { e.preventDefault(); if (bz.disabled) return; bz.classList.add('hit'); try { navigator.vibrate && navigator.vibrate(80); } catch {} sendFF({ buzz: true }, [bz]); };
+      bz.addEventListener('pointerdown', hit); bz.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') hit(e); });
+    } else if (s.mode === 'order') {
+      const pieces = s.items || [], bank = fffShuffle(pieces.length, hashStr(vid + s.id)), picked = [], steps = s.arrange === 'steps';
+      am.innerHTML = `<div class="card aud-card">${head(s)}${who(false)}${clock}
+        <div class="ord-lbl">Your ${steps ? 'sequence' : 'sentence'}</div>
+        <div class="ord-ans ${steps ? 'steps' : ''}" id="ordAns" data-ph="Tap the ${steps ? 'steps' : 'words'} below in the right order…"></div>
+        <div class="ord-tools"><button class="btn sm ghost" id="ordClr">↺ Clear</button></div>
+        <div class="ord-bank" id="ordBank"></div>
+        <button class="btn navy submit" id="ffGo" disabled>Submit ⚡</button></div>`;
+      const go2 = $('#ffGo');
+      const draw = () => {
+        $('#ordAns').innerHTML = picked.map((i, k) => `<button class="chip placed" data-out="${k}">${steps ? `<i>${k + 1}</i>` : ''}${esc(pieces[i])}</button>`).join('');
+        $('#ordBank').innerHTML = bank.filter(i => !picked.includes(i)).map(i => `<button class="chip" data-in="${i}">${esc(pieces[i])}</button>`).join('');
+        go2.disabled = picked.length !== pieces.length;
+        $$('[data-in]', am).forEach(b => b.onclick = () => { picked.push(+b.dataset.in); draw(); });
+        $$('[data-out]', am).forEach(b => b.onclick = () => { picked.splice(+b.dataset.out, 1); draw(); });
+      };
+      draw();
+      $('#ordClr').onclick = () => { picked.length = 0; draw(); };
+      go2.onclick = () => { if (picked.length === pieces.length) sendFF({ order: [...picked] }, [go2]); };
     } else {
       am.innerHTML = `<div class="card aud-card">${head(s)}${who(false)}${clock}
-        <input class="input" id="ffIn" maxlength="60" placeholder="Type your answer…" autocomplete="off" style="font-size:18px;padding:14px">
+        ${s.mode === 'open' ? `<textarea class="input" id="ffIn" maxlength="200" rows="3" placeholder="Type your answer…" style="font-size:17px;padding:14px"></textarea>`
+          : `<input class="input" id="ffIn" maxlength="60" placeholder="Type your answer…" autocomplete="off" style="font-size:18px;padding:14px">`}
         <button class="btn navy submit" id="ffGo" disabled>Submit ⚡</button></div>`;
       const inp = $('#ffIn'), go2 = $('#ffGo'); inp.focus();
       inp.oninput = () => { go2.disabled = !inp.value.trim(); };
       const fire = () => { const v = inp.value.trim(); if (v) sendFF({ text: v }, [inp, go2]); };
-      go2.onclick = fire; inp.onkeydown = e => { if (e.key === 'Enter') fire(); };
+      go2.onclick = fire; inp.onkeydown = e => { if (e.key === 'Enter' && !(s.mode === 'open' && e.shiftKey)) { e.preventDefault(); fire(); } };
     }
-    runTick(() => { if (!LS.get(vk)) timeUp("You didn't answer this one in time."); });
+    runTick(() => { if (!LS.get(vk)) s.mode === 'buzzer' ? timeUpBuzz() : timeUp("You didn't answer this one in time."); });
+  }
+  // After pressing the buzzer: show this person's live position in the buzz order
+  function buzzed(s, fs, ms, left, runTick) {
+    const lim = fffLimit(s);
+    $('#am').innerHTML = `<div class="card aud-card">${head(s)}
+      ${left() > 0 ? `<div class="ff-clock"><div class="ff-track"><div class="ff-fill" id="ffBar" style="width:${Math.max(0, left() / lim * 100)}%"></div></div><b id="ffSec">${Math.max(0, Math.ceil(left() / 1000))}s</b></div>` : ''}
+      <div class="ff-state" style="padding:14px 0"><span class="em">🔔</span><h2 id="bzHead">${left() > 0 ? 'Buzzed!' : 'Buzzers closed!'}</h2>
+      <p>You pressed in about <b style="color:var(--ink)">${(ms / 1000).toFixed(2)}s</b></p>
+      <div class="bz-pos" id="bzPos">…</div><p id="bzMsg">Checking your place…</p></div></div>`;
+    unsubQA = Store.watchResponses(code, s.id, list => {
+      const ranked = fffRanked(s, list, fs.start || 0), idx = ranked.findIndex(r => r.voter === vid);
+      const pos = $('#bzPos'), msg = $('#bzMsg'); if (!pos) return;
+      if (idx < 0) { pos.textContent = '…'; return; }
+      pos.textContent = '#' + (idx + 1) + (idx < 3 ? ' ' + ['🥇', '🥈', '🥉'][idx] : '');
+      msg.innerHTML = idx === 0 ? '<b style="color:var(--ink)">You were first!</b> Get ready to answer 🎤' : `${idx} ${idx === 1 ? 'person' : 'people'} buzzed before you`;
+    });
+    if (left() > 0) runTick(() => { const h = $('#bzHead'); if (h) h.textContent = 'Buzzers closed!'; $('.ff-clock')?.remove(); });
   }
   function fffResults(s, fs) {
     const am = $('#am');
