@@ -410,6 +410,12 @@ footer.foot{background:var(--navy);color:#C9CFEA;padding:70px 0 26px;border-top:
 /* ---------- Audience ---------- */
 .aud{min-height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,#FFF3E6,var(--bg) 40%)}
 .aud-top{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;gap:10px}
+.aud-left{display:flex;align-items:center;gap:12px;min-width:0}
+.home-btn{padding:7px 12px;gap:6px;background:#fff}
+.home-btn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:520px){.aud-top{padding:12px 14px}.aud-left{gap:8px}.home-btn{padding:6px 10px;font-size:12.5px}.aud-top .tag{font-size:11px;padding:4px 9px}}
+@media (max-width:420px){.aud-top .tag b{display:none}}
+@media (max-width:370px){.aud-top .brand-logo{height:31px}.home-btn span{display:none}.home-btn{padding:7px}}
 .aud-main{flex:1;width:min(560px,100% - 28px);margin:6px auto 20px}
 .aud-card{padding:26px 22px;animation:rise .5s var(--spring) both}
 .aud-card .q-title{font-size:clamp(24px,6vw,32px);margin:8px 0 22px}
@@ -671,6 +677,7 @@ function brandHTML(light = false, sub = 'Mentee-Mentor') {
   const full = CONFIG.LOGO_URL || LOGO_FULL;
   return `<div class="brand ${light ? 'light' : ''}"><a class="brand-link" href="${esc(CONFIG.SITE)}" target="_blank" rel="noopener" title="Visit cognospace.in"><img class="brand-logo" src="${esc(full)}" alt="CognoSpace — Experiential Learning"></a>${sub ? `<span class="brand-sub" data-home title="Mentee-Mentor home">${esc(sub)}</span>` : ''}</div>`;
 }
+const homeBtn = () => `<button class="btn sm home-btn" data-home title="Back to the Mentee-Mentor home page" aria-label="Home"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 9.5V20h5v-6h4v6h5V9.5"/></svg><span>Home</span></button>`;
 function bindHome(root = document) { $$('[data-home]', root).forEach(b => b.onclick = () => go('')); }
 
 /* =====================================================================
@@ -1714,7 +1721,7 @@ function viewPresent(code) {
    ===================================================================== */
 function viewJoin() {
   app.innerHTML = `<div class="aud">
-    <div class="aud-top">${brandHTML(false, 'User Mode')}<button class="btn sm ghost" data-home>← Home</button></div>
+    <div class="aud-top"><div class="aud-left">${brandHTML(false, 'User Mode')}${homeBtn()}</div></div>
     <div class="join-card card">
       <span class="pill" style="animation:none">🎓 Join a live session</span>
       <h1>Enter the Presenter ID</h1>
@@ -1739,7 +1746,7 @@ function viewJoin() {
 
 function viewAudience(rawCode) {
   const code = String(rawCode).replace(/\D/g, '');
-  app.innerHTML = `<div class="aud"><div class="aud-top">${brandHTML(false, 'User Mode')}<span class="tag">ID ${fmtCode(code)}</span></div>
+  app.innerHTML = `<div class="aud"><div class="aud-top"><div class="aud-left">${brandHTML(false, 'User Mode')}${homeBtn()}</div><span class="tag"><b>ID&nbsp;</b>${fmtCode(code)}</span></div>
     <div class="aud-main" id="am">${loader()}</div>${miniFoot()}</div>`;
   bindHome();
   let shownKey = null, unsubQA = null, p = null, ffTick = null;
