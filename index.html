@@ -459,6 +459,44 @@ footer.foot{background:var(--navy);color:#C9CFEA;padding:70px 0 26px;border-top:
 .upv span{font-size:16px;line-height:1}
 .locked-note{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:14px;background:#FFE8EE;font-weight:800;margin-bottom:14px}
 .loader{display:grid;place-items:center;min-height:60vh}
+
+/* ---------- Fastest Fingers First ---------- */
+.ff-board{display:flex;flex-direction:column;gap:10px;max-height:52vh;overflow:auto;padding:4px 8px 8px 4px}
+.ff-row{display:grid;grid-template-columns:52px minmax(100px,1fr) 1.4fr 84px 36px;gap:14px;align-items:center;padding:12px 16px;border:2px solid var(--navy);border-radius:16px;background:#fff;box-shadow:3px 3px 0 var(--navy)}
+.ff-row.win{background:linear-gradient(90deg,#FFF0B8,#fff 70%);box-shadow:5px 5px 0 var(--amber)}
+.ff-row.no{opacity:.62}
+.ff-row.me{outline:3px solid var(--orange);outline-offset:2px}
+.ff-rank{width:44px;height:44px;border-radius:13px;background:var(--navy);color:#fff;display:grid;place-items:center;font-family:Fredoka;font-weight:600;font-size:20px}
+.ff-rank.m{background:none;font-size:32px}
+.ff-name{font-weight:900;font-size:17px;word-break:break-word}
+.ff-ans{font-weight:700;color:var(--muted);word-break:break-word}
+.ff-time{font-family:Fredoka;font-weight:600;font-size:20px;text-align:right;white-space:nowrap}
+.ff-mark{font-weight:900;font-size:20px;text-align:center}
+.ff-mark.ok{color:var(--mint)}.ff-mark.bad{color:var(--pink)}
+.ff-big{font-family:Fredoka;font-size:clamp(84px,13vw,170px);font-weight:700;text-align:center;line-height:1;color:var(--orange)}
+.ff-big.low{color:var(--pink);animation:ffPulse 1s infinite}
+@keyframes ffPulse{50%{transform:scale(1.07)}}
+.ff-track{height:18px;border-radius:99px;background:#F1E7DA;border:2px solid var(--navy);overflow:hidden;width:min(700px,100%);margin:16px auto}
+.ff-fill{height:100%;background:linear-gradient(90deg,var(--pink),var(--amber),var(--mint));transition:width .2s linear}
+.ff-sub{text-align:center;font-weight:800;color:var(--muted);font-size:18px}
+.ff-sub b{color:var(--ink);font-family:Fredoka;font-size:24px}
+.ff-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:22px}
+.ff-opt{padding:14px 16px;border:2px solid var(--navy);border-radius:16px;background:#fff;font-weight:800;font-size:18px;display:flex;gap:10px;align-items:center;box-shadow:var(--sh-sm)}
+.ff-opt.ok{background:#DBF8EE}
+.ff-opt i{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;color:#fff;font-style:normal;font-size:14px;font-weight:900;flex:none}
+.ff-state{text-align:center;padding:30px 10px}
+.ff-state .em{font-size:72px;display:block;margin-bottom:8px;animation:bob 1.8s ease-in-out infinite}
+.ff-state h2{font-size:clamp(30px,4vw,48px);margin-bottom:8px}
+.ff-state p{color:var(--muted);font-weight:700;font-size:17px}
+.ff-correct{display:inline-flex;gap:8px;align-items:center;padding:8px 14px;border-radius:12px;background:#DBF8EE;border:2px solid var(--navy);font-weight:900;margin-bottom:14px}
+.ff-clock{display:flex;align-items:center;gap:12px;margin:-8px 0 18px}
+.ff-clock .ff-track{margin:0;flex:1;height:14px}
+.ff-clock b{font-family:Fredoka;font-size:28px;font-weight:700;color:var(--orange);min-width:58px;text-align:right}
+.ff-clock b.low{color:var(--pink)}
+.ff-me{text-align:center;padding:18px;border-radius:18px;background:var(--soft);border:2px dashed #E6D2B8;margin-bottom:16px}
+.ff-me b{display:block;font-family:Fredoka;font-size:44px;color:var(--orange);line-height:1.1}
+.who{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:13px;color:var(--muted);margin-bottom:10px}
+.who button{color:var(--orange);font-weight:900;text-decoration:underline}
 .spinner{width:46px;height:46px;border-radius:50%;border:5px solid #F1E2CF;border-top-color:var(--orange);animation:spin .8s linear infinite}
 
 /* ---------- Responsive ---------- */
@@ -471,6 +509,10 @@ footer.foot{background:var(--navy);color:#C9CFEA;padding:70px 0 26px;border-top:
   .ed-panel{border-left:none;border-top:2px solid var(--line)}
 }
 @media (max-width:700px){
+  .ff-row{grid-template-columns:40px 1fr 66px 26px;gap:8px 10px;padding:10px 12px}
+  .ff-ans{grid-row:2;grid-column:2/-1;font-size:14px}
+  .ff-rank{width:36px;height:36px;font-size:16px}.ff-rank.m{font-size:26px}
+  .ff-time{font-size:17px}
   .nav-links a{display:none}.modes{grid-template-columns:1fr}.steps{grid-template-columns:1fr}
   .feat-grid{grid-template-columns:1fr}.foot-grid{grid-template-columns:1fr}
   .phone{left:0;transform:scale(.9)}.screen{width:240px}.cloud-card{width:210px;right:0}
@@ -604,6 +646,7 @@ const ICONS = {
   points: `<svg viewBox="0 0 24 24"><rect x="3" y="17" width="8" height="4" rx="1"/><rect x="8" y="10" width="8" height="4" rx="1"/><rect x="13" y="3" width="8" height="4" rx="1"/></svg>`,
   grid: `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="9" height="9" rx="1.5"/><rect x="12" y="12" width="9" height="9" rx="1.5"/></svg>`,
   form: `<svg viewBox="0 0 24 24"><path d="M15 4l5 5L9 20H4v-5z"/></svg>`,
+  fff: `<svg viewBox="0 0 24 24"><path d="M13.5 1.5 4 13.5h6.5L9.5 22.5 20 9.5h-6.5z"/></svg>`,
   pin: `<svg viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7zm0 4.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg>`
 };
 const TYPES = {
@@ -617,9 +660,10 @@ const TYPES = {
   points:    { name: '100 Points',       color: '#5C7CFA', desc: 'Spread a budget of points to show what really matters.' },
   grid:      { name: '2 x 2 Grid',       color: '#FF7461', desc: 'Place ideas on two axes — like effort vs. impact.' },
   form:      { name: 'Quick Form',       color: '#F5B700', desc: 'A tiny form with your own fields for quick feedback.' },
+  fff:       { name: 'Fastest Fingers First', color: '#E8590C', desc: 'A timed race — MCQ or short answer. See who answered first, by name.' },
   pin:       { name: 'Pin on Image',     color: '#6C5CE7', desc: 'Drop a pin on a picture, map or circuit diagram.' }
 };
-const TYPE_ORDER = ['mc','wordcloud','open','scales','ranking','qa','guess','points','grid','form','pin'];
+const TYPE_ORDER = ['mc','fff','wordcloud','open','scales','ranking','qa','guess','points','grid','form','pin'];
 const ticon = (t, size) => `<span class="ticon" style="color:${TYPES[t].color};${size ? `width:${size}px;height:${size}px` : ''}">${ICONS[t]}</span>`;
 
 const PIN_PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE3C7"/><stop offset="1" stop-color="#D7ECFF"/></linearGradient></defs><rect width="800" height="500" fill="url(#g)"/><circle cx="610" cy="130" r="58" fill="#FFB020"/><path d="M0 370 L170 220 L320 330 L470 190 L800 410 L800 500 L0 500Z" fill="#19C79A" opacity=".85"/><path d="M0 430 L250 330 L520 445 L800 360 L800 500 L0 500Z" fill="#3BA9FF" opacity=".8"/><g fill="#fff" opacity=".9"><circle cx="150" cy="110" r="22"/><circle cx="180" cy="100" r="28"/><circle cx="215" cy="112" r="20"/></g></svg>`);
@@ -638,6 +682,7 @@ function newSlide(type) {
     case 'grid': return { ...s, question: 'Rate each project idea', items: ['Smart irrigation', 'Face-recognition gate', 'Gesture robot'], xLabel: 'Effort', yLabel: 'Impact', gmin: 0, gmax: 10 };
     case 'form': return { ...s, question: 'Quick workshop feedback', fields: [{ label: 'Your school', type: 'text', req: false }, { label: 'Favourite activity', type: 'text', req: true }, { label: 'Any suggestions?', type: 'textarea', req: false }] };
     case 'pin': return { ...s, question: 'Tap where you would like to explore first', image: PIN_PLACEHOLDER };
+    case 'fff': return { ...s, question: 'Which sensor measures distance using sound waves?', mode: 'mc', options: ['LDR', 'Ultrasonic sensor', 'IR sensor', 'Thermistor'], correct: 1, answer: '', timeLimit: 20 };
   }
 }
 
@@ -660,6 +705,8 @@ const LocalStore = (() => {
   return {
     mode: 'demo',
     async init() {},
+    now() { return Date.now(); },
+    ts() { return Date.now(); },
     async list() { return Object.values(all()).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)); },
     async get(code) { return all()[code] || null; },
     async save(p) { const a = all(); a[p.code] = { ...(a[p.code] || {}), ...clone(p), updatedAt: Date.now() }; LS.setJSON(PK, a); emit(PK); },
@@ -678,7 +725,7 @@ const FirebaseStore = (() => {
   // ---- Firebase REALTIME DATABASE adapter ----
   // Data layout:  /presentations/{code}            -> presentation (title, slides, live state)
   //               /responses/{code}/{pushId}       -> { slideId, voter, data, ts, up:{voterId:true}, answered }
-  let db;
+  let db, offset = 0;
   const load = src => new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
   const P = c => db.ref(c ? 'presentations/' + c : 'presentations');
   const R = c => db.ref('responses/' + c);
@@ -688,7 +735,7 @@ const FirebaseStore = (() => {
   const normP = v => {
     if (!v) return null;
     v.slides = toArr(v.slides).map(sl => { ['options', 'items', 'statements', 'fields'].forEach(k => { if (k in sl || isNumObj(sl[k])) sl[k] = toArr(sl[k]); }); return sl; });
-    v.resets = v.resets || {}; return v;
+    v.resets = v.resets || {}; v.fffState = v.fffState || {}; return v;
   };
   const normR = (id, r) => {
     const data = r.data || {}; Object.keys(data).forEach(k => { if (isNumObj(data[k])) data[k] = toArr(data[k]); });
@@ -707,12 +754,16 @@ const FirebaseStore = (() => {
   const listen = (q, fn) => { const h = q.on('value', fn, e => console.error('Realtime Database:', e.message)); return () => q.off('value', h); };
   return {
     mode: 'firebase',
+    now() { return Date.now() + offset; },
+    ts() { return firebase.database.ServerValue.TIMESTAMP; },
     async init() {
       const v = '10.12.2';
       await load(`https://www.gstatic.com/firebasejs/${v}/firebase-app-compat.js`);
       await load(`https://www.gstatic.com/firebasejs/${v}/firebase-database-compat.js`);
       firebase.initializeApp(CONFIG.firebaseConfig);
       db = firebase.database();
+      // Server clock offset — so every device's countdown and every answer's timestamp agree
+      db.ref('.info/serverTimeOffset').on('value', s => { offset = Number(s.val()) || 0; });
     },
     async list() { const s = await T(P().once('value'), 'loading presentations'); return Object.values(s.val() || {}).map(normP).filter(Boolean).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)); },
     async get(code) { const s = await T(P(code).once('value'), 'reading a presentation'); return normP(s.val()); },
@@ -720,7 +771,7 @@ const FirebaseStore = (() => {
     async update(code, patch) { await T(P(code).update(clone(patch)), 'updating'); },
     async remove(code) { await T(db.ref().update({ ['presentations/' + code]: null, ['responses/' + code]: null }), 'deleting'); },
     watch(code, cb) { return listen(P(code), s => cb(normP(s.val()))); },
-    async addResponse(code, slideId, data) { await T(R(code).push({ slideId, voter: voterId(), data: clone(data), ts: Date.now(), answered: false }), 'sending an answer'); },
+    async addResponse(code, slideId, data) { await T(R(code).push({ slideId, voter: voterId(), data: clone(data), ts: firebase.database.ServerValue.TIMESTAMP, answered: false }), 'sending an answer'); },
     watchResponses(code, slideId, cb) { return listen(R(code).orderByChild('slideId').equalTo(slideId), s => cb(Object.entries(s.val() || {}).map(([id, r]) => normR(id, r)))); },
     async toggleUpvote(code, id, vid, has) { await R(code).child(id + '/up/' + vid).set(has ? null : true); },
     async setAnswered(code, id, v) { await R(code).child(id + '/answered').set(!!v); },
@@ -832,7 +883,7 @@ function viewLanding() {
   <div class="marquee"><div class="marquee-in">${marq}${marq}</div></div>
 
   <section class="sec" id="types"><div class="wrap">
-    <div class="sec-head reveal"><span class="eyebrow">11 interactive question types</span>
+    <div class="sec-head reveal"><span class="eyebrow">12 interactive question types</span>
       <h2>Everything you need to get the room talking</h2>
       <p>From quick polls to idea mapping — pick a question type, type your prompt, and go live in seconds.</p></div>
     <div class="types-grid">
@@ -1122,12 +1173,72 @@ function renderResults(slide, res, st = {}) {
         <tbody>${list.map(r => `<tr class="pop" data-k="f:${r.id}">${slide.fields.map((f, i) => `<td>${esc((r.data.values || [])[i] || '—')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
       break;
     }
+    case 'fff': return renderFFF(slide, res, st);
     case 'pin': {
       html = `<div style="text-align:center"><div class="pin-wrap"><img src="${esc(slide.image)}" alt="">
         ${res.filter(r => r.data && Number.isFinite(r.data.x)).map(r => `<i class="pin-dot pop" data-k="p:${r.id}" style="left:${r.data.x}%;top:${r.data.y}%"></i>`).join('')}</div></div>`;
       key += ':' + slide.image.length;
       break;
     }
+  }
+  return { key, html };
+}
+
+/* ---------- Fastest Fingers First helpers ---------- */
+const FFF_GRACE = 1500;   // ms of network grace after the timer ends
+const fffLimit = s => Math.max(3, Number(s.timeLimit) || 20) * 1000;
+const fffAnswer = (s, d) => s.mode === 'mc' ? (s.options[d.choice] ?? '—') : (d.text || '—');
+function fffCorrectText(s) {
+  if (s.mode === 'mc') return s.correct >= 0 && s.options[s.correct] != null ? s.options[s.correct] : '';
+  return String(s.answer || '').split(',').map(x => x.trim()).filter(Boolean).join(' / ');
+}
+function fffIsCorrect(s, d) {
+  if (s.mode === 'mc') return s.correct >= 0 ? d.choice === s.correct : null;
+  const ok = String(s.answer || '').split(',').map(normWord).filter(Boolean);
+  return ok.length ? ok.includes(normWord(d.text)) : null;
+}
+// Earliest answer first, one per participant, only answers that arrived within the time limit
+function fffRanked(s, res, start) {
+  const end = start ? start + fffLimit(s) + FFF_GRACE : Infinity, seen = new Set();
+  return res.filter(r => r.data && typeof r.ts === 'number' && r.ts <= end)
+    .sort((a, b) => a.ts - b.ts)
+    .filter(r => { const k = r.voter || r.id; if (seen.has(k)) return false; seen.add(k); return true; })
+    .map(r => ({ ...r, ms: start ? Math.max(0, r.ts - start) : null, ok: fffIsCorrect(s, r.data) }));
+}
+function fffBoard(s, ranked, { me = null, max = 100 } = {}) {
+  if (!ranked.length) return emptyRes('⏱️', 'Nobody answered in time');
+  const hasKey = ranked.some(r => r.ok !== null);
+  const win = hasKey ? ranked.find(r => r.ok) : ranked[0];
+  const medal = ['🥇', '🥈', '🥉'];
+  return `<div class="ff-board">${ranked.slice(0, max).map((r, i) => `<div class="ff-row pop ${r === win ? 'win' : ''} ${r.ok === false ? 'no' : ''} ${me && r.voter === me ? 'me' : ''}" data-k="ff:${r.id}" style="animation-delay:${Math.min(i, 12) * 70}ms">
+      <div class="ff-rank ${i < 3 ? 'm' : ''}">${i < 3 ? medal[i] : i + 1}</div>
+      <div class="ff-name">${esc(r.data.name || 'Anonymous')}${r === win ? ' 🏆' : ''}</div>
+      <div class="ff-ans">${esc(fffAnswer(s, r.data))}</div>
+      <div class="ff-time">${r.ms === null ? '' : (r.ms / 1000).toFixed(2) + 's'}</div>
+      <div class="ff-mark ${r.ok === true ? 'ok' : r.ok === false ? 'bad' : ''}">${r.ok === true ? '✓' : r.ok === false ? '✗' : ''}</div></div>`).join('')}</div>`;
+}
+function renderFFF(slide, res, st) {
+  const fs = st.fff || {}, start = fs.start || 0, lim = fffLimit(slide);
+  const now = st.now ?? Date.now();
+  const phase = fs.shown ? 'shown' : !start ? 'idle' : now < start + lim ? 'run' : 'up';
+  const answered = fffRanked(slide, res, start).length;
+  let key = 'fff:' + slide.id + ':' + phase + ':' + slide.mode, html = '';
+  const opts = slide.mode === 'mc' ? `<div class="ff-opts">${slide.options.map((o, i) => `<div class="ff-opt ${phase === 'shown' && slide.correct === i ? 'ok' : ''}"><i style="background:${PALETTE[i % PALETTE.length]}">${String.fromCharCode(65 + i)}</i>${esc(o)}</div>`).join('')}</div>` : '';
+  if (phase === 'idle') {
+    html = `<div class="ff-state"><span class="em">⚡</span><h2>Fingers ready?</h2><p>${slide.mode === 'mc' ? 'Multiple choice' : 'Short answer'} · ${lim / 1000} seconds · fastest answer wins</p>
+      ${st.presenter ? '<p style="margin-top:10px">Press <b style="color:var(--ink)">▶ Start timer</b> below to open answers.</p>' : ''}</div>${opts}`;
+  } else if (phase === 'run') {
+    const left = Math.max(0, start + lim - now);
+    html = `<div><div class="ff-big ${left <= 5000 ? 'low' : ''}" data-k="fft" data-text>${Math.ceil(left / 1000)}</div>
+      <div class="ff-track"><div class="ff-fill" data-k="ffb" style="width:${(left / lim * 100).toFixed(1)}%"></div></div>
+      <div class="ff-sub"><b data-k="ffn" data-text>${answered}</b> answered so far</div>${opts}</div>`;
+  } else if (phase === 'up') {
+    html = `<div class="ff-state"><span class="em">⏰</span><h2>Time up!</h2><p><b style="color:var(--ink)" data-k="ffn" data-text>${answered}</b> answer${answered === 1 ? '' : 's'} locked in${st.presenter ? ' · press <b style="color:var(--ink)">🏆 Show results</b> to reveal who was fastest' : ''}</p></div>`;
+  } else {
+    const ranked = fffRanked(slide, res, start);
+    key += ':' + ranked.map(r => r.id).join(',');
+    const ct = fffCorrectText(slide);
+    html = `${ct ? `<div style="text-align:center"><span class="ff-correct">✓ Correct answer: ${esc(ct)}</span></div>` : ''}${fffBoard(slide, ranked)}`;
   }
   return { key, html };
 }
@@ -1152,8 +1263,11 @@ function sampleResponses(slide) {
       case 'grid': data = { xy: slide.items.map(() => ({ x: slide.gmin + R() * (slide.gmax - slide.gmin), y: slide.gmin + R() * (slide.gmax - slide.gmin) })) }; break;
       case 'form': if (k > 3) continue; data = { values: slide.fields.map(f => f.type === 'textarea' ? 'More hands-on time please!' : 'Sample answer') }; break;
       case 'pin': data = { x: 20 + R() * 60, y: 25 + R() * 50 }; break;
+      case 'fff': { if (k > 7) continue; const nm = ['Aarav', 'Diya', 'Kabir', 'Ananya', 'Rohan', 'Meera', 'Ishaan', 'Sana'][k];
+        data = slide.mode === 'mc' ? { name: nm, choice: ri(slide.options.length) } : { name: nm, text: (slide.answer || 'Answer').split(',')[0].trim() || 'Answer' };
+        if (k % 3 === 2 && slide.mode !== 'mc') data.text = 'Not sure'; break; }
     }
-    out.push({ id, slideId: slide.id, data, ts: k, up: Array(ri(6)).fill('x'), answered: false });
+    out.push({ id, slideId: slide.id, voter: 'v' + k, data, ts: slide.type === 'fff' ? 700 + k * 900 + ri(500) : k, up: Array(ri(6)).fill('x'), answered: false });
   }
   return out;
 }
@@ -1209,6 +1323,8 @@ function viewEditor(code) {
       if (s.type === 'guess' && !(s.min < s.max && s.correct >= s.min && s.correct <= s.max)) return bad('min < max and the answer must be in range');
       if (s.type === 'points' && !(s.budget > 0)) return bad('points budget must be positive');
       if (s.type === 'form' && !s.fields.length) return bad('add at least one field');
+      if (s.type === 'fff' && s.mode === 'mc' && s.options.length < 2) return bad('add at least 2 options');
+      if (s.type === 'fff' && !(Number(s.timeLimit) >= 3)) return bad('time limit must be at least 3 seconds');
     }
     return true;
   }
@@ -1217,6 +1333,7 @@ function viewEditor(code) {
     if (!ed.p.title.trim()) { toast('Please add a title', 'err'); $('#title').focus(); return false; }
     // tidy: drop empty list rows
     ed.p.slides.forEach(s => ['options', 'items', 'statements'].forEach(k => { if (Array.isArray(s[k])) s[k] = s[k].map(x => x.trim()).filter(Boolean); }));
+    ed.p.slides.forEach(s => { if (s.type === 'fff' && s.correct >= (s.options || []).length) s.correct = -1; });
     if (!validate()) return false;
     saving = true;
     try {
@@ -1248,7 +1365,7 @@ function viewEditor(code) {
   function refreshThumb() { const t = $(`.thumb[data-i="${ed.sel}"] .tt`); if (t) t.textContent = cur().question || TYPES[cur().type].name; }
   function paintCanvas() {
     const s = cur(); $('#cchip').innerHTML = `${ticon(s.type)} ${TYPES[s.type].name} · slide ${ed.sel + 1} of ${ed.p.slides.length}`;
-    const { html } = renderResults(s, sample ? sampleResponses(s) : [], { reveal: s.type === 'guess' && sample });
+    const { html } = renderResults(s, sample ? sampleResponses(s) : [], { reveal: s.type === 'guess' && sample, fff: sample ? { start: 1, shown: true } : null });
     $('#canvas').innerHTML = `<h2 class="q-title">${esc(s.question || 'Type your question…')}</h2><div class="res">${html}</div>`;
   }
   const listEd = (name, arr, ph) => `${arr.map((v, i) => `<div class="list-row"><span class="bullet" style="background:${PALETTE[i % PALETTE.length]}"></span>
@@ -1279,6 +1396,16 @@ function viewEditor(code) {
           <button class="x btn ghost sm" data-del-f="${i}">✕</button></div></div>`).join('')}
           <button class="add-link" data-add-f>＋ Add field</button></div>
           <div class="hint">🕶️ Tip: participants stay anonymous unless you add fields that ask for personal details.</div>`; break;
+      case 'fff': body = `<div class="field"><label>Answer type</label><select class="input" data-f="mode">
+          <option value="mc" ${s.mode === 'mc' ? 'selected' : ''}>Multiple choice (MCQ)</option><option value="short" ${s.mode === 'short' ? 'selected' : ''}>Short answer</option></select></div>
+        ${s.mode === 'mc' ? `<div class="field"><label>Options</label>${listEd('options', s.options, 'Option')}</div>
+          <div class="field"><label>Correct option</label><select class="input" data-f="correct" data-type="num">
+            <option value="-1" ${s.correct < 0 ? 'selected' : ''}>None — rank by speed only</option>
+            ${s.options.map((o, i) => `<option value="${i}" ${s.correct === i ? 'selected' : ''}>${String.fromCharCode(65 + i)} · ${esc(o || 'Option ' + (i + 1))}</option>`).join('')}</select></div>`
+        : `<div class="field"><label>Accepted answers</label><input class="input" data-f="answer" value="${esc(s.answer)}" maxlength="120" placeholder="e.g. Ultrasonic, HC-SR04"></div>
+          <div class="hint">Separate several accepted answers with commas. Matching ignores capitals and punctuation. Leave empty to rank by speed only.</div>`}
+        <div class="field"><label>Time limit</label><select class="input" data-f="timeLimit" data-type="num">${[5, 10, 15, 20, 30, 45, 60, 90, 120].map(n => `<option value="${n}" ${Number(s.timeLimit) === n ? 'selected' : ''}>${n} seconds</option>`).join('')}</select></div>
+        <div class="hint">⚡ Participants are asked for their <b>name</b> when they join this presentation. Names appear <b>only</b> on Fastest Fingers First results — every other question stays anonymous.</div>`; break;
       case 'pin': body = `<div class="field"><label>Image</label><img class="imgprev" src="${esc(s.image)}" alt="">
           <input class="input" data-f="imageUrl" placeholder="Paste image URL…" value="${s.image.startsWith('data:') ? '' : esc(s.image)}" style="margin-bottom:8px">
           <label class="btn sm" style="width:100%">⬆ Upload image<input type="file" accept="image/*" id="pinUp" hidden></label></div>
@@ -1295,8 +1422,10 @@ function viewEditor(code) {
     panel.oninput = e => {
       const t = e.target;
       if (t.dataset.f === 'imageUrl') { s.image = t.value.trim() || PIN_PLACEHOLDER; $('.imgprev', panel).src = s.image; }
-      else if (t.dataset.f) s[t.dataset.f] = t.type === 'checkbox' ? t.checked : t.dataset.type === 'num' ? Number(t.value) : t.value;
-      else if (t.dataset.l) s[t.dataset.l][+t.dataset.i] = t.value;
+      else if (t.dataset.f) { s[t.dataset.f] = t.type === 'checkbox' ? t.checked : t.dataset.type === 'num' ? Number(t.value) : t.value;
+        if (s.type === 'fff' && t.dataset.f === 'mode') { if (s.mode === 'mc' && (!s.options || s.options.length < 2)) s.options = ['Option A', 'Option B']; dirty(); paintPanel(); paintCanvas(); return; } }
+      else if (t.dataset.l) { s[t.dataset.l][+t.dataset.i] = t.value;
+        if (s.type === 'fff' && t.dataset.l === 'options') { const o = $(`[data-f="correct"] option[value="${t.dataset.i}"]`, panel); if (o) o.textContent = String.fromCharCode(65 + +t.dataset.i) + ' · ' + (t.value || 'Option ' + (+t.dataset.i + 1)); } }
       else if (t.dataset.ff) s.fields[+t.dataset.i][t.dataset.ff] = t.type === 'checkbox' ? t.checked : t.value;
       else return;
       dirty(); paintCanvas(); refreshThumb();
@@ -1304,7 +1433,9 @@ function viewEditor(code) {
     panel.onclick = e => {
       const t = e.target;
       if (t.dataset.addL) { s[t.dataset.addL].push(''); dirty(); paintPanel(); paintCanvas(); const ins = $$(`[data-l="${t.dataset.addL}"]`); ins[ins.length - 1]?.focus(); }
-      else if (t.dataset.delL) { if (s[t.dataset.delL].length <= 1) return toast('Keep at least one', 'err'); s[t.dataset.delL].splice(+t.dataset.i, 1); dirty(); paintPanel(); paintCanvas(); }
+      else if (t.dataset.delL) { if (s[t.dataset.delL].length <= 1) return toast('Keep at least one', 'err'); const di = +t.dataset.i; s[t.dataset.delL].splice(di, 1);
+        if (s.type === 'fff' && t.dataset.delL === 'options' && s.correct >= 0) s.correct = s.correct === di ? -1 : s.correct > di ? s.correct - 1 : s.correct;
+        dirty(); paintPanel(); paintCanvas(); }
       else if (t.hasAttribute('data-add-f')) { s.fields.push({ label: '', type: 'text', req: false }); dirty(); paintPanel(); paintCanvas(); }
       else if (t.dataset.delF !== undefined) { if (s.fields.length <= 1) return toast('Keep at least one field', 'err'); s.fields.splice(+t.dataset.delF, 1); dirty(); paintPanel(); paintCanvas(); }
     };
@@ -1366,6 +1497,12 @@ function viewPresent(code) {
     if (e.key.toLowerCase() === 'f') toggleFs();
   };
   addEventListener('keydown', onKey); cleanups.push(() => removeEventListener('keydown', onKey));
+  // Fastest Fingers First countdown refresh
+  let lastPhase = '';
+  const tick = setInterval(() => { if (!p) return; const s = p.slides[p.current || 0]; if (s && s.type === 'fff') { draw(); const ph = fffPhase(s); if (ph !== lastPhase) { lastPhase = ph; paintBar(); } } }, 200);
+  cleanups.push(() => clearInterval(tick));
+  function fffPhase(s) { const fs = (p.fffState || {})[s.id] || {}; return fs.shown ? 'shown' : !fs.start ? 'idle' : Store.now() < fs.start + fffLimit(s) ? 'run' : 'up'; }
+  function setFS(s, patch) { const all = { ...(p.fffState || {}) }; all[s.id] = { ...(all[s.id] || {}), ...patch }; return Store.update(code, { fffState: all }); }
   function nav(d) { const n = clamp((p.current || 0) + d, 0, p.slides.length - 1); if (n !== p.current) Store.update(code, { current: n, reveal: false }); }
   function toggleFs() { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.(); }
 
@@ -1404,8 +1541,8 @@ function viewPresent(code) {
     const s = p.slides[p.current || 0];
     const voters = new Set(res.map(r => r.voter)).size;
     const c = $('#cnt'); if (c) c.textContent = s.type === 'qa' ? res.length : voters;
-    if (p.hideResults) { el.dataset.mkey = ''; el.innerHTML = `<div class="hidden-res"><b>${voters}</b>responses so far · results hidden 🙈</div>`; return; }
-    const { key, html } = renderResults(s, res, { reveal: p.reveal, presenter: true });
+    if (p.hideResults && s.type !== 'fff') { el.dataset.mkey = ''; el.innerHTML = `<div class="hidden-res"><b>${voters}</b>responses so far · results hidden 🙈</div>`; return; }
+    const { key, html } = renderResults(s, res, { reveal: p.reveal, presenter: true, fff: (p.fffState || {})[s.id], now: Store.now() });
     morph(el, key, html);
   }
   function paintBar() {
@@ -1416,21 +1553,27 @@ function viewPresent(code) {
         <span style="align-self:center;font-weight:900;padding:0 10px">${i + 1} / ${n}</span>
         <button class="btn sm primary" id="b-next" ${i === n - 1 ? 'disabled' : ''}>Next →</button></div>
       <div class="group">
-        <button class="btn sm ${p.hideResults ? 'on' : ''}" id="b-hide" title="H">${p.hideResults ? '👁 Show results' : '🙈 Hide results'}</button>
+        ${s.type === 'fff' ? '' : `<button class="btn sm ${p.hideResults ? 'on' : ''}" id="b-hide" title="H">${p.hideResults ? '👁 Show results' : '🙈 Hide results'}</button>`}
         <button class="btn sm ${p.locked ? 'on' : ''}" id="b-lock">${p.locked ? '🔒 Voting closed' : '🔓 Voting open'}</button>
+        ${s.type === 'fff' ? (() => { const fs = (p.fffState || {})[s.id] || {}, ph = fffPhase(s);
+          return `<button class="btn sm ${fs.start ? '' : 'mint'}" id="b-fstart" ${fs.start ? 'disabled' : ''}>${!fs.start ? '▶ Start timer' : ph === 'run' ? '⏱ Running…' : '⏰ Time up'}</button>
+          <button class="btn sm ${fs.shown ? 'on' : 'primary'}" id="b-fshow">${fs.shown ? '🙈 Hide leaderboard' : '🏆 Show results'}</button>`; })() : ''}
         ${s.type === 'guess' ? `<button class="btn sm ${p.reveal ? 'on' : 'mint'}" id="b-rev">${p.reveal ? 'Hide answer' : '🎯 Reveal answer'}</button>` : ''}
         <button class="btn sm" id="b-reset">↺ Reset</button>
         <button class="btn sm" id="b-fs" title="F">⛶</button></div>`;
     $('#b-exit').onclick = () => go('presenter');
     $('#b-prev').onclick = () => nav(-1); $('#b-next').onclick = () => nav(1);
-    $('#b-hide').onclick = () => Store.update(code, { hideResults: !p.hideResults });
+    if ($('#b-hide')) $('#b-hide').onclick = () => Store.update(code, { hideResults: !p.hideResults });
     $('#b-lock').onclick = () => Store.update(code, { locked: !p.locked });
     if ($('#b-rev')) $('#b-rev').onclick = () => Store.update(code, { reveal: !p.reveal });
+    if ($('#b-fstart')) $('#b-fstart').onclick = () => setFS(s, { start: Store.ts(), shown: false });
+    if ($('#b-fshow')) $('#b-fshow').onclick = () => setFS(s, { shown: !((p.fffState || {})[s.id] || {}).shown });
     $('#b-fs').onclick = toggleFs;
     $('#b-reset').onclick = async () => {
       if (!(await confirmBox('Reset this slide?', 'All responses for this question will be cleared and participants can answer again.', 'Reset'))) return;
       await Store.clearResponses(code, s.id);
-      await Store.update(code, { resets: { ...(p.resets || {}), [s.id]: ((p.resets || {})[s.id] || 0) + 1 }, reveal: false });
+      const fst = { ...(p.fffState || {}) }; delete fst[s.id];
+      await Store.update(code, { resets: { ...(p.resets || {}), [s.id]: ((p.resets || {})[s.id] || 0) + 1 }, reveal: false, fffState: fst });
       toast('Slide reset');
     };
   }
@@ -1448,7 +1591,7 @@ function viewJoin() {
       <p class="muted" style="font-weight:700">You'll find the 6-digit code on the presenter's screen.</p>
       <input class="code-in" id="code" inputmode="numeric" maxlength="7" placeholder="000000" autocomplete="off">
       <button class="btn mint submit" id="go">Join session →</button>
-      <div class="anon">🕶️ 100% anonymous — we never ask for your name</div>
+      <div class="anon">🕶️ Anonymous — names are asked only for Fastest Fingers First rounds</div>
     </div>${miniFoot()}</div>`;
   bindHome();
   const c = $('#code'); c.focus();
@@ -1469,21 +1612,110 @@ function viewAudience(rawCode) {
   app.innerHTML = `<div class="aud"><div class="aud-top">${brandHTML(false, 'User Mode')}<span class="tag">ID ${fmtCode(code)}</span></div>
     <div class="aud-main" id="am">${loader()}</div>${miniFoot()}</div>`;
   bindHome();
-  let shownKey = null, unsubQA = null, p = null;
+  let shownKey = null, unsubQA = null, p = null, ffTick = null;
   const vid = voterId();
-  let unsub; unsub = Store.watch(code, np => {
+  const nameKey = 'mm_name_' + code;
+  const stopTick = () => { if (ffTick) { clearInterval(ffTick); ffTick = null; } };
+  const hasFFF = () => (p.slides || []).some(s => s.type === 'fff');
+  const onP = np => {
     p = np; const am = $('#am'); if (!am) return;
+    if (p && hasFFF() && !LS.get(nameKey)) { if (shownKey !== 'name') { shownKey = 'name'; stopTick(); unsubQA && unsubQA(); unsubQA = null; askName(); } return; }
     if (!p) { shownKey = 'nf'; am.innerHTML = `<div class="card aud-card waiting"><div style="font-size:54px">🔍</div><h2 style="margin:10px 0">Session not found</h2><p class="muted" style="font-weight:700;margin-bottom:18px">Check the Presenter ID and try again.</p><button class="btn mint" onclick="go('join')">Try another code</button></div>`; return; }
-    if (!p.live) { if (shownKey !== 'wait') { shownKey = 'wait'; unsubQA && unsubQA(); unsubQA = null;
+    if (!p.live) { if (shownKey !== 'wait') { shownKey = 'wait'; stopTick(); unsubQA && unsubQA(); unsubQA = null;
       am.innerHTML = `<div class="card aud-card waiting"><div class="orb"></div><h2 style="font-size:28px">${esc(p.title)}</h2><p class="muted" style="font-weight:700;margin-top:8px">Waiting for the presenter to start <span class="dots"><i></i><i></i><i></i></span></p></div>`; } return; }
     const s = p.slides[p.current || 0]; if (!s) return;
     const reset = (p.resets || {})[s.id] || 0;
-    const key = [s.id, reset, p.locked ? 1 : 0].join(':');
+    const fs = s.type === 'fff' ? (p.fffState || {})[s.id] || {} : {};
+    const key = [s.id, reset, p.locked ? 1 : 0, fs.start || 0, fs.shown ? 1 : 0, s.type === 'fff' ? JSON.stringify(s) : ''].join(':');
     if (key === shownKey) return;
-    shownKey = key; unsubQA && unsubQA(); unsubQA = null;
+    shownKey = key; stopTick(); unsubQA && unsubQA(); unsubQA = null;
     paint(s, reset);
-  });
-  cleanups.push(() => { unsub && unsub(); unsubQA && unsubQA(); });
+  };
+  const unsub = Store.watch(code, onP);
+  cleanups.push(() => { unsub && unsub(); unsubQA && unsubQA(); stopTick(); });
+
+  function askName() {
+    $('#am').innerHTML = `<div class="card aud-card" style="text-align:center">
+      <div style="font-size:54px;animation:bob 1.8s ease-in-out infinite">⚡</div>
+      <h2 style="font-size:28px;margin:8px 0 6px">What's your name?</h2>
+      <p class="muted" style="font-weight:700;margin-bottom:18px">This session has a <b style="color:var(--ink)">Fastest Fingers First</b> round. Your name is shown <b style="color:var(--ink)">only</b> on that leaderboard — every other answer stays anonymous.</p>
+      <input class="input" id="nm" maxlength="30" placeholder="Your name" value="${esc(LS.get('mm_name_last') || '')}" style="font-size:18px;padding:14px;text-align:center">
+      <button class="btn primary submit" id="nmGo">Let's go →</button></div>`;
+    const nm = $('#nm'); nm.focus(); nm.select();
+    const ok = () => { const v = nm.value.replace(/\s+/g, ' ').trim().slice(0, 30);
+      if (!v) { nm.classList.remove('shake'); void nm.offsetWidth; nm.classList.add('shake'); return toast('Please enter your name', 'err'); }
+      LS.set(nameKey, v); LS.set('mm_name_last', v); shownKey = null; onP(p); };
+    $('#nmGo').onclick = ok; nm.onkeydown = e => { if (e.key === 'Enter') ok(); };
+  }
+
+  /* ---------- Fastest Fingers First (participant) ---------- */
+  function fff(s, reset) {
+    const am = $('#am'), fs = (p.fffState || {})[s.id] || {}, lim = fffLimit(s), vk = votedKey(s, reset), name = LS.get(nameKey) || 'Anonymous';
+    const left = () => (fs.start || 0) + lim - Store.now();
+    const who = changeable => `<div class="who">⚡ Playing as <b style="color:var(--ink)">${esc(name)}</b>${changeable ? ' · <button id="chName">change</button>' : ''}</div>`;
+    const bindWho = () => { const b = $('#chName'); if (b) b.onclick = () => { LS.del(nameKey); shownKey = null; onP(p); }; };
+    if (fs.shown) return fffResults(s, fs);
+    if (!fs.start) {
+      am.innerHTML = `<div class="card aud-card">${head(s)}${who(true)}<div class="ff-state" style="padding:20px 0"><span class="em">🏁</span><h2 style="font-size:28px">Get ready!</h2>
+        <p>Answers open when the presenter starts the timer.<br>You'll have <b style="color:var(--ink)">${lim / 1000} seconds</b> — be quick! ${s.mode === 'mc' ? 'One tap answers.' : ''}</p></div></div>`;
+      return bindWho();
+    }
+    const clock = `<div class="ff-clock"><div class="ff-track"><div class="ff-fill" id="ffBar" style="width:${Math.max(0, left() / lim * 100)}%"></div></div><b id="ffSec">${Math.max(0, Math.ceil(left() / 1000))}s</b></div>`;
+    const runTick = (onEnd) => { stopTick(); ffTick = setInterval(() => { const l = left();
+      const bar = $('#ffBar'), sec = $('#ffSec');
+      if (bar) bar.style.width = Math.max(0, l / lim * 100) + '%';
+      if (sec) { sec.textContent = Math.max(0, Math.ceil(l / 1000)) + 's'; sec.classList.toggle('low', l <= 5000); }
+      if (l <= 0) { stopTick(); onEnd(); } }, 100); };
+    const timeUp = msg => { am.innerHTML = `<div class="card aud-card">${head(s)}<div class="ff-state"><span class="em">⏰</span><h2>Time up!</h2><p>${msg}</p>
+      <p style="margin-top:10px">Results appear when the presenter reveals them <span class="dots"><i></i><i></i><i></i></span></p></div></div>`; };
+    const mine = LS.get(vk);
+    if (mine !== null) {
+      const sec = (Number(mine) / 1000).toFixed(2);
+      if (left() <= 0) return timeUp(`Your answer is locked in — you answered in about <b style="color:var(--ink)">${sec}s</b>.`);
+      am.innerHTML = `<div class="card aud-card">${head(s)}${clock}<div class="thanks" style="padding:16px"><div class="check"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+        <h2>Locked in! ⚡</h2><p>You answered in about <b style="color:var(--ink)">${sec}s</b>. Waiting for the timer to finish…</p></div></div>`;
+      return runTick(() => timeUp(`Your answer is locked in — you answered in about <b style="color:var(--ink)">${sec}s</b>.`));
+    }
+    if (left() <= 0) return timeUp("You didn't answer this one in time.");
+    let sending = false;
+    const sendFF = async (data, els) => {
+      if (sending) return; if (left() <= 0) { stopTick(); return timeUp("You didn't answer this one in time."); }
+      sending = true; els.forEach(e => e.disabled = true);
+      const ms = Math.max(0, Store.now() - fs.start);
+      try { await Store.addResponse(code, s.id, { ...data, name }); LS.set(vk, String(ms)); stopTick(); fff(s, reset); }
+      catch (e) { console.error(e); toast('Could not send — try again', 'err'); sending = false; els.forEach(e => e.disabled = false); }
+    };
+    if (s.mode === 'mc') {
+      am.innerHTML = `<div class="card aud-card">${head(s)}${who(false)}${clock}
+        ${s.options.map((o, i) => `<button class="opt" data-i="${i}"><span class="lt" style="background:${PALETTE[i % PALETTE.length]}">${String.fromCharCode(65 + i)}</span>${esc(o)}</button>`).join('')}
+        <p class="muted" style="font-weight:800;text-align:center;font-size:13px">Tap once — your first tap is your answer</p></div>`;
+      const btns = $$('.opt', am);
+      btns.forEach(b => b.onclick = () => { b.classList.add('sel'); sendFF({ choice: +b.dataset.i }, btns); });
+    } else {
+      am.innerHTML = `<div class="card aud-card">${head(s)}${who(false)}${clock}
+        <input class="input" id="ffIn" maxlength="60" placeholder="Type your answer…" autocomplete="off" style="font-size:18px;padding:14px">
+        <button class="btn navy submit" id="ffGo" disabled>Submit ⚡</button></div>`;
+      const inp = $('#ffIn'), go2 = $('#ffGo'); inp.focus();
+      inp.oninput = () => { go2.disabled = !inp.value.trim(); };
+      const fire = () => { const v = inp.value.trim(); if (v) sendFF({ text: v }, [inp, go2]); };
+      go2.onclick = fire; inp.onkeydown = e => { if (e.key === 'Enter') fire(); };
+    }
+    runTick(() => { if (!LS.get(vk)) timeUp("You didn't answer this one in time."); });
+  }
+  function fffResults(s, fs) {
+    const am = $('#am');
+    am.innerHTML = `<div class="card aud-card">${head(s)}<div id="ffRes">${loader()}</div></div>`;
+    unsubQA = Store.watchResponses(code, s.id, list => {
+      const el = $('#ffRes'); if (!el) return;
+      const ranked = fffRanked(s, list, fs.start || 0), idx = ranked.findIndex(r => r.voter === vid), me = ranked[idx];
+      const ct = fffCorrectText(s);
+      el.innerHTML = `${me ? `<div class="ff-me">You finished<b>#${idx + 1}${idx < 3 ? ' ' + ['🥇', '🥈', '🥉'][idx] : ''}</b>
+          <span class="muted" style="font-weight:800">${esc(fffAnswer(s, me.data))}${me.ms !== null ? ' · ' + (me.ms / 1000).toFixed(2) + 's' : ''}${me.ok === true ? ' · ✓ correct' : me.ok === false ? ' · ✗ wrong' : ''}</span></div>`
+        : `<div class="ff-me" style="font-weight:800;color:var(--muted)">You didn't answer this round in time ⏰</div>`}
+        ${ct ? `<div style="text-align:center"><span class="ff-correct">✓ ${esc(ct)}</span></div>` : ''}
+        <h4 style="margin:4px 0 10px;font-size:18px">🏆 Leaderboard</h4>${fffBoard(s, ranked, { me: vid, max: 10 })}`;
+    });
+  }
 
   function votedKey(s, reset) { return `mm_v_${code}_${s.id}_${reset}`; }
   function head(s) {
@@ -1498,6 +1730,7 @@ function viewAudience(rawCode) {
   }
   function paint(s, reset) {
     if (s.type === 'qa') return qa(s);
+    if (s.type === 'fff') return fff(s, reset);
     if (p.locked) { $('#am').innerHTML = `<div class="card aud-card">${head(s)}<div class="locked-note">🔒 Voting is closed for this question.</div><p class="muted" style="font-weight:700">Wait for the presenter to open the next one.</p></div>`; return; }
     if (LS.get(votedKey(s, reset))) return thanks(s, reset, s.type === 'open' && s.multi);
     form(s, reset);
