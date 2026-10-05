@@ -553,12 +553,21 @@ footer.foot{background:var(--navy);color:#C9CFEA;padding:70px 0 26px;border-top:
 .ord-ans:empty::before{content:attr(data-ph);color:var(--muted);font-weight:800;font-size:14px;padding:4px}
 .ord-bank{display:flex;flex-wrap:wrap;gap:8px;min-height:46px;margin-bottom:6px}
 .ord-tools{display:flex;justify-content:flex-end;margin-bottom:4px}
-.buzzer{display:grid;place-items:center;width:min(250px,68vw);aspect-ratio:1;margin:14px auto 18px;border-radius:50%;border:6px solid var(--navy);
-  background:radial-gradient(circle at 35% 28%,#FF9DB3,#F2245B 58%,#B5123E);color:#fff;font-family:Fredoka;font-weight:700;font-size:clamp(28px,8vw,38px);letter-spacing:.04em;
-  box-shadow:0 12px 0 #7A0C2A,0 18px 28px rgba(27,37,89,.35);transition:transform .07s,box-shadow .07s;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation}
-.buzzer small{display:block;font-family:Nunito;font-size:13px;font-weight:900;letter-spacing:.12em;opacity:.9}
-.buzzer:active,.buzzer.hit{transform:translateY(10px);box-shadow:0 2px 0 #7A0C2A,0 6px 12px rgba(27,37,89,.3)}
-.buzzer:disabled{opacity:1;pointer-events:none}
+.bzr{display:block;width:min(270px,74vw);margin:6px auto 0;padding:0;border:none;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation;outline:none}
+.bzr svg{width:100%;height:auto;display:block;overflow:visible}
+.bzr .dome{transition:transform .07s ease-out;transform-box:view-box}
+.bzr .ring-glow{transition:opacity .15s;animation:bzrPulse 1.6s ease-in-out infinite}
+.bzr .ring{transition:fill .1s}
+.bzr:hover .dome{transform:translateY(2px)}
+.bzr:active .dome,.bzr.hit .dome{transform:translateY(11px)}
+.bzr.hit .ring-glow,.bzr.on .ring-glow{animation:none;opacity:1}
+.bzr.hit .ring,.bzr.on .ring{fill:url(#bzRingHot)}
+.bzr.hit .glow-c1,.bzr.on .glow-c1{stop-color:#FFE27A}.bzr.hit .glow-c2,.bzr.on .glow-c2{stop-color:#FF7A1A}
+.bzr:focus-visible{filter:drop-shadow(0 0 0 3px var(--orange))}
+.bzr:disabled{pointer-events:none}
+.bzr.small{width:min(150px,42vw)}
+@keyframes bzrPulse{0%,100%{opacity:.55}50%{opacity:1}}
+.bzr-hint{text-align:center;font-weight:900;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:4px 0 6px}
 .bz-top{display:flex;align-items:center;gap:16px;width:min(760px,100%);margin:0 auto 18px}
 .bz-top .ff-track{margin:0;flex:1}
 .bz-top b{font-family:Fredoka;font-size:40px;font-weight:700;color:var(--orange);min-width:76px;text-align:right}
@@ -1279,6 +1288,43 @@ function renderResults(slide, res, st = {}) {
 /* ---------- Fastest Fingers First helpers ---------- */
 const FFF_GRACE = 1500;   // ms of network grace after the timer ends
 const fffLimit = s => Math.max(3, Number(s.timeLimit) || 20) * 1000;
+/* Arcade-style buzzer: red dome on a black base with a glowing light ring (no text on it) */
+function buzzerSVG() {
+  return `<svg viewBox="0 0 220 250" aria-hidden="true">
+    <defs>
+      <radialGradient id="bzDome" cx="38%" cy="30%" r="75%"><stop offset="0" stop-color="#FF8A80"/><stop offset=".35" stop-color="#F0261B"/><stop offset=".8" stop-color="#B30F0A"/><stop offset="1" stop-color="#7E0805"/></radialGradient>
+      <linearGradient id="bzBody" x1="0" x2="1"><stop offset="0" stop-color="#0D0D10"/><stop offset=".3" stop-color="#3A3A42"/><stop offset=".55" stop-color="#1B1B20"/><stop offset="1" stop-color="#060608"/></linearGradient>
+      <linearGradient id="bzRing" x1="0" x2="1"><stop offset="0" stop-color="#9FB8FF"/><stop offset=".35" stop-color="#FFFFFF"/><stop offset=".6" stop-color="#E9F0FF"/><stop offset="1" stop-color="#7C93E8"/></linearGradient>
+      <linearGradient id="bzRingHot" x1="0" x2="1"><stop offset="0" stop-color="#FF8A1A"/><stop offset=".35" stop-color="#FFF4C2"/><stop offset=".6" stop-color="#FFD23F"/><stop offset="1" stop-color="#FF6A00"/></linearGradient>
+      <radialGradient id="bzGlow"><stop class="glow-c1" offset="0" stop-color="#E8F0FF"/><stop class="glow-c2" offset="1" stop-color="#7C9BFF" stop-opacity="0"/></radialGradient>
+      <filter id="bzBlur" x="-30%" y="-80%" width="160%" height="260%"><feGaussianBlur stdDeviation="9"/></filter>
+      <filter id="bzSoft"><feGaussianBlur stdDeviation="4"/></filter>
+      <pattern id="bzLines" width="6" height="3.2" patternUnits="userSpaceOnUse"><rect width="6" height="1.4" fill="#fff" opacity=".06"/></pattern>
+    </defs>
+    <ellipse cx="110" cy="236" rx="96" ry="12" fill="#1B2559" opacity=".22" filter="url(#bzSoft)"/>
+    <!-- base -->
+    <path d="M24 182 V218 A86 16 0 0 0 196 218 V182 Z" fill="url(#bzBody)"/>
+    <path d="M24 182 V218 A86 16 0 0 0 196 218 V182 Z" fill="url(#bzLines)"/>
+    <!-- light ring -->
+    <ellipse class="ring-glow" cx="110" cy="170" rx="104" ry="30" fill="url(#bzGlow)" filter="url(#bzBlur)"/>
+    <path class="ring" d="M26 156 V182 A84 16 0 0 0 194 182 V156 Z" fill="url(#bzRing)"/>
+    <path d="M26 170 A84 16 0 0 0 194 170" fill="none" stroke="#fff" stroke-width="3" opacity=".7"/>
+    <!-- collar -->
+    <path d="M20 128 V156 A90 17 0 0 0 200 156 V128 Z" fill="url(#bzBody)"/>
+    <path d="M20 128 V156 A90 17 0 0 0 200 156 V128 Z" fill="url(#bzLines)"/>
+    <ellipse cx="110" cy="128" rx="90" ry="17" fill="#26262C"/>
+    <ellipse cx="110" cy="128" rx="78" ry="13" fill="#0B0B0E"/>
+    <!-- dome -->
+    <g class="dome">
+      <path d="M34 126 A76 84 0 0 1 186 126 A76 14 0 0 1 34 126 Z" fill="url(#bzDome)"/>
+      <path d="M34 126 A76 84 0 0 1 186 126 A76 14 0 0 1 34 126 Z" fill="url(#bzLines)"/>
+      <ellipse cx="80" cy="72" rx="26" ry="15" fill="#fff" opacity=".42" transform="rotate(-28 80 72)" filter="url(#bzSoft)"/>
+      <ellipse cx="74" cy="66" rx="9" ry="5" fill="#fff" opacity=".75" transform="rotate(-28 74 66)"/>
+    </g>
+    <!-- collar front lip (hides the dome when pressed in) -->
+    <path d="M20 128 A90 17 0 0 0 200 128 L200 140 A90 17 0 0 1 20 140 Z" fill="url(#bzBody)"/>
+  </svg>`;
+}
 const FFF_MODES = { mc: 'Multiple choice', short: 'Short answer', order: 'Arrange in order', open: 'Open ended', buzzer: 'Buzzer' };
 const fffJoin = s => s.arrange === 'steps' ? ' → ' : ' ';
 function fffShuffle(n, seed) {
@@ -1899,7 +1945,8 @@ function viewAudience(rawCode) {
       btns.forEach(b => b.onclick = () => { b.classList.add('sel'); sendFF({ choice: +b.dataset.i }, btns); });
     } else if (s.mode === 'buzzer') {
       am.innerHTML = `<div class="card aud-card">${head(s)}${who(false)}${clock}
-        <button class="buzzer" id="bz">BUZZ!<small>TAP AS FAST AS YOU CAN</small></button></div>`;
+        <button class="bzr" id="bz" aria-label="Buzzer — press as fast as you can">${buzzerSVG()}</button>
+        <div class="bzr-hint">Hit the buzzer!</div></div>`;
       const bz = $('#bz');
       const hit = e => { e.preventDefault(); if (bz.disabled) return; bz.classList.add('hit'); try { navigator.vibrate && navigator.vibrate(80); } catch {} sendFF({ buzz: true }, [bz]); };
       bz.addEventListener('pointerdown', hit); bz.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') hit(e); });
@@ -1939,7 +1986,7 @@ function viewAudience(rawCode) {
     const lim = fffLimit(s);
     $('#am').innerHTML = `<div class="card aud-card">${head(s)}
       ${left() > 0 ? `<div class="ff-clock"><div class="ff-track"><div class="ff-fill" id="ffBar" style="width:${Math.max(0, left() / lim * 100)}%"></div></div><b id="ffSec">${Math.max(0, Math.ceil(left() / 1000))}s</b></div>` : ''}
-      <div class="ff-state" style="padding:14px 0"><span class="em">🔔</span><h2 id="bzHead">${left() > 0 ? 'Buzzed!' : 'Buzzers closed!'}</h2>
+      <div class="ff-state" style="padding:6px 0 14px"><div class="bzr small hit on" style="pointer-events:none">${buzzerSVG()}</div><h2 id="bzHead" style="margin-top:8px">${left() > 0 ? 'Buzzed!' : 'Buzzers closed!'}</h2>
       <p>You pressed in about <b style="color:var(--ink)">${(ms / 1000).toFixed(2)}s</b></p>
       <div class="bz-pos" id="bzPos">…</div><p id="bzMsg">Checking your place…</p></div></div>`;
     unsubQA = Store.watchResponses(code, s.id, list => {
