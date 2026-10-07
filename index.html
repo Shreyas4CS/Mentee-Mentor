@@ -601,6 +601,103 @@ footer.foot{background:var(--navy);color:#C9CFEA;padding:70px 0 26px;border-top:
   .rk-row{grid-template-columns:40px 1fr}.rk-row .rk-bar{grid-column:2}
   .pv-top{padding:12px}.join-banner .codebig{font-size:22px}
 }
+
+/* ---------- Joined mentees · name entry · motion polish ---------- */
+#app>*{animation:viewIn .55s var(--spring) backwards}
+@keyframes viewIn{from{opacity:0;transform:translateY(14px)}}
+.btn{position:relative;overflow:hidden;isolation:isolate}
+.btn.primary::after,.btn.mint::after,.btn.pink::after,.btn.navy::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);transform:translateX(-120%);transition:transform .7s ease;z-index:-1;pointer-events:none}
+.btn.primary:hover::after,.btn.mint:hover::after,.btn.pink:hover::after,.btn.navy:hover::after{transform:translateX(120%)}
+.ripple{position:absolute;border-radius:50%;background:currentColor;opacity:.25;transform:scale(0);animation:ripple .6s ease-out forwards;pointer-events:none;z-index:-1}
+@keyframes ripple{to{transform:scale(4);opacity:0}}
+.modal-bg.out{animation:fadeOut .22s forwards}
+.modal-bg.out .modal{animation:modalOut .22s forwards}
+@keyframes fadeOut{to{opacity:0}}
+@keyframes modalOut{to{opacity:0;transform:translateY(16px) scale(.96)}}
+.pv-stage .stage-anim{animation:stageIn .65s var(--spring) backwards}
+@keyframes stageIn{from{opacity:0;transform:translateY(28px) scale(.97);filter:blur(8px)}}
+.aud-card{animation:cardIn .6s var(--spring) backwards}
+@keyframes cardIn{from{opacity:0;transform:translateY(30px) scale(.96) rotate(-.6deg);filter:blur(4px)}}
+.bump{animation:bump .45s var(--spring)}
+@keyframes bump{40%{transform:scale(1.35);color:var(--orange)}}
+.q-title{animation:rise .6s .08s var(--spring) both}
+.opt{animation:rise .5s var(--spring) backwards}
+.opt:nth-child(1){animation-delay:.08s}.opt:nth-child(2){animation-delay:.14s}.opt:nth-child(3){animation-delay:.2s}.opt:nth-child(4){animation-delay:.26s}.opt:nth-child(5){animation-delay:.32s}.opt:nth-child(n+6){animation-delay:.38s}
+.opt:active{transform:scale(.98)}
+
+/* Ask-names switch */
+.switch{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:14px;cursor:pointer;user-select:none}
+.switch input{position:absolute;opacity:0;width:0;height:0}
+.switch .sw{width:46px;height:26px;border-radius:99px;background:#E6D9C8;border:2px solid var(--navy);position:relative;flex:none;transition:background .25s}
+.switch .sw::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid var(--navy);transition:transform .3s var(--spring)}
+.switch input:checked+.sw{background:var(--mint)}
+.switch input:checked+.sw::after{transform:translateX(20px)}
+.switch input:focus-visible+.sw{box-shadow:0 0 0 4px rgba(255,122,26,.25)}
+.switch small{display:block;font-size:12px;font-weight:700;color:var(--muted)}
+.set-box{padding:14px 16px;border:2px dashed #E6D2B8;border-radius:16px;background:#FFFBF6;margin-bottom:18px}
+.ed-top .switch{padding:6px 12px;border:2px solid var(--line);border-radius:12px;background:#fff;font-size:13px}
+.thumb.name-thumb{cursor:default;background:linear-gradient(135deg,#E9FBF4,#FFF6E0);border-style:dashed;animation:rise .4s var(--spring) both}
+.thumb.name-thumb small{display:block;font-size:11px;font-weight:800;color:var(--muted);margin-top:2px}
+
+/* Avatars */
+.av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#fff;font-family:Fredoka;font-weight:600;font-size:15px;border:2px solid var(--navy);flex:none;text-transform:uppercase}
+
+/* Name-entry slide (mentee) */
+.name-card{text-align:center;padding:34px 24px;position:relative;overflow:hidden}
+.name-card::before{content:"";position:absolute;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(255,122,26,.18),transparent 70%);top:-120px;right:-90px;animation:drift 8s ease-in-out infinite alternate}
+.name-card::after{content:"";position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(124,92,255,.15),transparent 70%);bottom:-110px;left:-80px;animation:drift 9s ease-in-out infinite alternate-reverse}
+.name-card>*{position:relative;z-index:1}
+.name-step{display:inline-flex;gap:6px;align-items:center;font-size:11.5px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);animation:rise .5s var(--spring) both}
+.name-step i{width:8px;height:8px;border-radius:50%;background:#E6D9C8}.name-step i.on{background:var(--orange);width:20px;border-radius:9px}
+.name-av{width:96px;height:96px;margin:18px auto 8px;border-radius:50%;display:grid;place-items:center;font-family:Fredoka;font-weight:700;font-size:38px;color:#fff;border:3px solid var(--navy);box-shadow:var(--sh);transition:background .35s;animation:popIn .6s .1s var(--spring) both;position:relative}
+.name-av::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:3px dashed var(--orange);animation:spin 12s linear infinite;opacity:.6}
+.name-av.typing{animation:wiggle .35s}
+@keyframes wiggle{30%{transform:rotate(-6deg) scale(1.05)}60%{transform:rotate(5deg)}}
+.name-card h2{font-size:30px;margin:10px 0 6px;animation:rise .55s .15s var(--spring) both}
+.name-card p{animation:rise .55s .22s var(--spring) both}
+.name-card .input{font-size:19px;padding:15px;text-align:center;animation:rise .55s .3s var(--spring) both}
+.name-card .submit{animation:rise .55s .38s var(--spring) both}
+.name-hi{font-family:Fredoka;font-size:20px;font-weight:600;color:var(--orange);min-height:26px;margin-bottom:6px;transition:opacity .2s}
+.you-are{display:inline-flex;align-items:center;gap:8px;margin-top:16px;padding:6px 12px 6px 6px;border-radius:99px;background:#fff;border:2px solid var(--navy);box-shadow:var(--sh-sm);font-weight:800;font-size:14px;animation:popIn .5s .5s var(--spring) both}
+.you-are .av{width:28px;height:28px;font-size:12px}
+.you-are button{color:var(--orange);font-weight:900;text-decoration:underline;font-size:12.5px;margin-left:2px}
+
+/* Confetti */
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:9998;overflow:hidden}
+.confetti i{position:absolute;top:-14px;width:10px;height:14px;border-radius:3px;animation:confFall var(--d) cubic-bezier(.25,.6,.4,1) forwards}
+@keyframes confFall{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(var(--x),105vh) rotate(var(--r));opacity:.8}}
+
+/* Who-joined button on the presenter welcome slide */
+.wel-joined{margin-top:24px;display:inline-flex;align-items:center;gap:12px;padding:8px 18px 8px 10px;border-radius:99px;background:#fff;border:3px solid var(--navy);box-shadow:var(--sh);font-weight:900;font-size:17px;cursor:pointer;transition:transform .25s var(--spring),box-shadow .25s;animation:rise .6s .6s var(--spring) both;position:relative;z-index:2}
+.wel-joined:hover{transform:translate(-3px,-3px) scale(1.03);box-shadow:8px 8px 0 var(--navy)}
+.wel-joined:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--navy)}
+.wel-joined .stack{display:flex}
+.wel-joined .stack .av{width:34px;height:34px;font-size:13px;margin-left:-10px;animation:popIn .45s var(--spring) both}
+.wel-joined .stack .av:first-child{margin-left:0}
+.wel-joined .stack .av.more{background:var(--navy)}
+.wel-joined .ico{width:34px;height:34px;border-radius:50%;background:var(--mint);display:grid;place-items:center;color:#fff;border:2px solid var(--navy);font-size:16px}
+.wel-joined b{font-family:Fredoka;font-size:24px;color:var(--orange)}
+.wel-joined.ping{animation:joinPing .9s var(--spring)}
+@keyframes joinPing{0%{box-shadow:var(--sh)}30%{transform:scale(1.07);box-shadow:0 0 0 10px rgba(25,199,154,.35),var(--sh)}100%{box-shadow:var(--sh)}}
+.bar-joined b{font-family:Fredoka;margin-left:2px}
+
+/* Who-joined popup */
+.jn-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:6px}
+.jn-count{font-family:Fredoka;font-weight:700;font-size:54px;line-height:1;color:var(--orange);text-align:right}
+.jn-count small{display:block;font-family:Nunito;font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.jn-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 16px}
+.jn-tools .input{flex:1;min-width:160px;padding:9px 13px;font-size:14px}
+.jn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;max-height:52vh;overflow:auto;padding:4px 6px 10px 2px}
+.jn-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border:2px solid var(--navy);border-radius:14px;background:#fff;box-shadow:2px 2px 0 var(--navy);font-weight:800;animation:rise .4s var(--spring) both;min-width:0}
+.jn-tx{display:flex;flex-direction:column;min-width:0;flex:1;line-height:1.2}
+.jn-tx b{font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jn-tx small{font-size:11px;color:var(--muted);font-weight:800}
+.jn-item.new{animation:jnNew .8s var(--spring) both}
+@keyframes jnNew{0%{opacity:0;transform:scale(.5)}60%{background:#E9FBF4;transform:scale(1.06)}100%{background:#fff}}
+.jn-empty{text-align:center;padding:34px 10px;color:var(--muted);font-weight:800}
+.jn-empty .em{font-size:52px;display:block;margin-bottom:8px;animation:bob 1.8s ease-in-out infinite}
+.jn-anon{display:flex;gap:12px;align-items:center;padding:14px 16px;border-radius:16px;background:var(--soft);font-weight:700;margin-bottom:14px}
+.jn-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 </head>
@@ -685,12 +782,33 @@ function modal(html, { wide = false } = {}) {
   const root = $('#modal-root');
   root.innerHTML = `<div class="modal-bg"><div class="modal card ${wide ? 'wide' : ''}">${html}</div></div>`;
   const bg = root.firstElementChild;
-  const close = () => { root.innerHTML = ''; document.removeEventListener('keydown', onKey); };
+  let closed = false;
+  const close = () => { if (closed) return; closed = true; document.removeEventListener('keydown', onKey);
+    bg.classList.add('out'); setTimeout(() => { if (bg.parentNode === root) root.innerHTML = ''; }, 220); };
   const onKey = e => { if (e.key === 'Escape') close(); };
   bg.addEventListener('mousedown', e => { if (e.target === bg) close(); });
   document.addEventListener('keydown', onKey);
   return { el: bg.firstElementChild, close };
 }
+// Coloured initials bubble for a mentee's name
+const initials = n => String(n || '?').trim().split(/\s+/).slice(0, 2).map(w => [...w][0] || '').join('') || '?';
+const avatar = (n, cls = '') => `<span class="av ${cls}" style="background:${PALETTE[hashStr(String(n || '').toLowerCase()) % PALETTE.length]}">${esc(initials(n))}</span>`;
+function confetti(n = 70) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const box = document.createElement('div'); box.className = 'confetti';
+  box.innerHTML = Array.from({ length: n }, () => `<i style="left:${Math.random() * 100}%;background:${PALETTE[Math.floor(Math.random() * PALETTE.length)]};--x:${(Math.random() - .5) * 220}px;--r:${(Math.random() - .5) * 1080}deg;--d:${1.6 + Math.random() * 1.6}s;animation-delay:${Math.random() * .35}s"></i>`).join('');
+  document.body.appendChild(box); setTimeout(() => box.remove(), 3800);
+}
+// Ripple on every button press
+document.addEventListener('pointerdown', e => {
+  const b = e.target.closest('.btn'); if (!b || b.disabled) return;
+  const r = b.getBoundingClientRect(), d = Math.max(r.width, r.height), sp = document.createElement('span');
+  sp.className = 'ripple'; sp.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX - r.left - d / 2}px;top:${e.clientY - r.top - d / 2}px`;
+  b.appendChild(sp); setTimeout(() => sp.remove(), 650);
+});
+// Animate a number when it changes
+function setNum(el, v) { if (!el) return; if (el.textContent !== String(v)) { el.textContent = v; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); } }
+
 function confirmBox(title, text, okLabel = 'Confirm', danger = true) {
   return new Promise(res => {
     const m = modal(`<h3>${esc(title)}</h3><p class="sub">${esc(text)}</p>
@@ -1086,7 +1204,7 @@ async function viewDashboard() {
       return `<div class="pcard card" style="animation-delay:${i * 50}ms">
         <div class="cover" style="background:linear-gradient(135deg,${c1},${c2})">${types.map(t => `<span class="ticon" style="color:#fff">${ICONS[t]}</span>`).join('')}
           <span class="code" data-copy="${p.code}" title="Copy Presenter ID">${fmtCode(p.code)}</span></div>
-        <div class="body"><h3>${esc(p.title)}</h3><div class="meta">${n} slide${n === 1 ? '' : 's'} · updated ${new Date(p.updatedAt || Date.now()).toLocaleDateString()}${p.live ? ' · <span style="color:var(--pink)">● live</span>' : ''}</div>
+        <div class="body"><h3>${esc(p.title)}</h3><div class="meta">${n} slide${n === 1 ? '' : 's'} · updated ${new Date(p.updatedAt || Date.now()).toLocaleDateString()}${p.askName ? ' · 👤 names on' : ''}${p.live ? ' · <span style="color:var(--pink)">● live</span>' : ''}</div>
         <div class="acts"><button class="btn sm primary" data-present="${p.code}">▶ Present</button><button class="btn sm" data-edit="${p.code}">✎ Edit</button><button class="btn sm" data-resetall="${p.code}" title="Reset all responses">↺ Reset</button><button class="btn sm ghost" data-del="${p.code}" title="Delete">🗑</button></div></div></div>`;
     }).join('')}</div>${list.length ? '' : '<div class="empty-dash">No presentations yet — create your first one! ✨</div>'}`;
   $('#newCard').onclick = createPresentation;
@@ -1101,7 +1219,7 @@ async function viewDashboard() {
     try {
       await Store.clearAll(p.code);
       const resets = { ...(p.resets || {}) }; (p.slides || []).forEach(sl => { resets[sl.id] = (resets[sl.id] || 0) + 1; });
-      await Store.update(p.code, { resets, fffState: {}, reveal: false });
+      await Store.update(p.code, { resets, fffState: {}, reveal: false, joinEpoch: (p.joinEpoch || 0) + 1 });
       toast('All responses reset ✓', 'ok');
     } catch (e) { console.error(e); showError('Could not reset responses', e); }
     b.disabled = false;
@@ -1113,6 +1231,7 @@ async function viewDashboard() {
 function createPresentation() {
   const m = modal(`<h3>New presentation</h3><p class="sub">Give it a title — you'll get a unique Presenter ID for mentees to join.</p>
     <div class="field"><label>Title</label><input class="input" id="npTitle" maxlength="80" placeholder="e.g. Grade 8 · Intro to IoT"></div>
+    <div class="set-box"><label class="switch"><input type="checkbox" id="npAsk"><span class="sw"></span><span>Ask mentees for their name<small>They type their name first, then see the welcome slide. You can change this later in the editor.</small></span></label></div>
     <div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>Cancel</button><button class="btn primary" id="npGo">Create →</button></div>`);
   const t = $('#npTitle', m.el); t.focus();
   $('[data-x]', m.el).onclick = m.close;
@@ -1121,7 +1240,7 @@ function createPresentation() {
     $('#npGo', m.el).disabled = true;
     try {
       const code = await newCode();
-      await Store.save({ code, title, slides: [newSlide('mc')], current: 0, live: false, hideResults: false, locked: false, reveal: false, resets: {}, createdAt: Date.now() });
+      await Store.save({ code, title, askName: $('#npAsk', m.el).checked, joinEpoch: 0, slides: [newSlide('mc')], current: 0, live: false, hideResults: false, locked: false, reveal: false, resets: {}, createdAt: Date.now() });
       m.close(); toast('Created! Presenter ID ' + fmtCode(code), 'ok'); go('edit/' + code);
     } catch (e) { console.error(e); showError('Could not create the session', e); $('#npGo', m.el).disabled = false; }
   };
@@ -1466,6 +1585,7 @@ function viewEditor(code) {
         <span class="tag" title="Presenter ID">ID ${fmtCode(ed.p.code)}</span>
         <span class="save-state" id="ss"><i></i><span>Saved</span></span>
         <div style="flex:1"></div>
+        <label class="switch" title="When on, mentees type their name before the welcome slide"><input type="checkbox" id="askName" ${ed.p.askName ? 'checked' : ''}><span class="sw"></span>👤 Ask names</label>
         <button class="btn sm" id="save">💾 Save</button>
         <button class="btn sm primary" id="present">▶ Present</button>
       </header>
@@ -1476,6 +1596,7 @@ function viewEditor(code) {
       <aside class="ed-panel" id="panel"></aside></div>`;
     $('#back').onclick = async () => { if (ed.dirty && !(await confirmBox('Leave without saving?', 'You have unsaved changes.', 'Leave'))) return; ed.dirty = false; go('presenter'); };
     $('#title').oninput = e => { ed.p.title = e.target.value; dirty(); };
+    $('#askName').onchange = e => { ed.p.askName = e.target.checked; dirty(); paintSide(); toast(e.target.checked ? 'Mentees will be asked for their name 👤' : 'Name collection turned off — mentees stay anonymous 🕶️'); };
     $('#save').onclick = save;
     $('#present').onclick = async () => { if (await save()) go('present/' + ed.p.code); };
     $('#sample').onchange = e => { sample = e.target.checked; paintCanvas(); };
@@ -1509,7 +1630,7 @@ function viewEditor(code) {
     try {
       const cur = await Store.get(ed.p.code) || {};
       const current = clamp(cur.current || 0, 0, ed.p.slides.length - 1);
-      await Store.save({ code: ed.p.code, title: ed.p.title.trim(), slides: ed.p.slides, current });
+      await Store.save({ code: ed.p.code, title: ed.p.title.trim(), askName: !!ed.p.askName, slides: ed.p.slides, current });
       ed.dirty = false; const s = $('#ss'); if (s) { s.classList.remove('dirty'); s.lastElementChild.textContent = 'Saved'; }
       toast('Presentation saved ✓', 'ok'); paintPanel(); return true;
     } catch (e) { console.error(e); showError('Save failed', e); return false; }
@@ -1517,7 +1638,7 @@ function viewEditor(code) {
   }
   function paintSide() {
     const side = $('#side');
-    side.innerHTML = `<div class="thumb wel-thumb" title="Shown automatically at the start of every session"><span class="num">👋</span><div class="tc"><div class="tt">Welcome · ${esc(ed.p.title || 'Session')}</div><small>Added automatically</small></div></div>` + ed.p.slides.map((s, i) => `<div class="thumb ${i === ed.sel ? 'sel' : ''}" data-i="${i}" draggable="true" title="Drag to reorder" style="animation-delay:${i * 30}ms">
+    side.innerHTML = (ed.p.askName ? `<div class="thumb name-thumb" title="Mentees type their name before the welcome slide"><span class="num">✍️</span><div class="tc"><div class="tt">Name entry</div><small>Ask names is on</small></div></div>` : '') + `<div class="thumb wel-thumb" title="Shown automatically at the start of every session"><span class="num">👋</span><div class="tc"><div class="tt">Welcome · ${esc(ed.p.title || 'Session')}</div><small>Added automatically</small></div></div>` + ed.p.slides.map((s, i) => `<div class="thumb ${i === ed.sel ? 'sel' : ''}" data-i="${i}" draggable="true" title="Drag to reorder" style="animation-delay:${i * 30}ms">
       <span class="grip">⋮⋮</span><span class="num">${i + 1}</span><div class="tc">${ticon(s.type)}<div class="tt">${esc(slideLabel(s))}</div></div>
       <div class="tools"><button data-a="up" title="Move up">↑</button><button data-a="down" title="Move down">↓</button><button data-a="dup" title="Duplicate">⧉</button><button data-a="del" title="Delete">✕</button></div></div>`).join('')
       + `<button class="add-slide" id="addSlide">＋ Add slide</button>`;
@@ -1605,7 +1726,7 @@ function viewEditor(code) {
         : `<div class="field"><label>Accepted answers</label><input class="input" data-f="answer" value="${esc(s.answer)}" maxlength="120" placeholder="e.g. Ultrasonic, HC-SR04"></div>
           <div class="hint">Separate several accepted answers with commas. Matching ignores capitals and punctuation. Leave empty to rank by speed only.</div>`}
         <div class="field"><label>Time limit</label><select class="input" data-f="timeLimit" data-type="num">${[5, 10, 15, 20, 30, 45, 60, 90, 120].map(n => `<option value="${n}" ${Number(s.timeLimit) === n ? 'selected' : ''}>${n} seconds</option>`).join('')}</select></div>
-        <div class="hint">⚡ Participants are asked for their <b>name</b> when they join this presentation. Names appear <b>only</b> on Fastest Fingers First results — every other question stays anonymous.</div>`; break;
+        <div class="hint">⚡ ${ed.p.askName ? 'Names are on for this presentation, so the leaderboard shows <b>who</b> answered first.' : 'Names are off, so the leaderboard shows <b>Anonymous</b>. Switch on <b>👤 Ask names</b> at the top to show names.'}</div>`; break;
       case 'pin': body = `<div class="field"><label>Image</label><img class="imgprev" src="${esc(s.image)}" alt="">
           <input class="input" data-f="imageUrl" placeholder="Paste image URL…" value="${s.image.startsWith('data:') ? '' : esc(s.image)}" style="margin-bottom:8px">
           <label class="btn sm" style="width:100%">⬆ Upload image<input type="file" accept="image/*" id="pinUp" hidden></label></div>
@@ -1682,13 +1803,26 @@ function welcomeHTML(title, { compact = false } = {}) {
    ===================================================================== */
 function viewPresent(code) {
   app.innerHTML = loader();
-  let p = null, res = [], slideId = null, unsubR = null, qrDone = false, lastTitle = null;
+  let p = null, res = [], slideId = null, unsubR = null, qrDone = false, lastTitle = null, joins = [], jnPop = null;
+  const seenJ = new Set();
   const joinUrl = location.href.split('#')[0] + '#/join/' + code;
   const host = location.host || 'this page';
   // Every new session opens on the Welcome slide (a refresh in the same tab keeps your place)
   const sesKey = 'mm_presenting_' + code;
-  Store.update(code, SS.get(sesKey) ? { live: true } : { live: true, intro: true, current: 0, reveal: false }).catch(() => {});
+  // A fresh session also starts a fresh "who joined" list; mentees already on the page re-register automatically
+  (async () => {
+    if (SS.get(sesKey)) return Store.update(code, { live: true });
+    const cur = await Store.get(code).catch(() => null);
+    await Store.clearResponses(code, '__join').catch(() => {});
+    return Store.update(code, { live: true, intro: true, current: 0, reveal: false, joinEpoch: ((cur && cur.joinEpoch) || 0) + 1 });
+  })().catch(() => {});
   SS.set(sesKey, '1'); cleanups.push(() => SS.del(sesKey));
+  const unsubJ = Store.watchResponses(code, '__join', r => {
+    const by = {}; r.forEach(x => { if (!by[x.voter] || (x.ts || 0) >= (by[x.voter].ts || 0)) by[x.voter] = x; });
+    const prev = joins.length; joins = Object.values(by).sort((a, b) => (a.ts || 0) - (b.ts || 0));
+    paintJoined(joins.length > prev);
+  });
+  cleanups.push(() => unsubJ && unsubJ());
   const unsubP = Store.watch(code, np => {
     if (!np) { toast('Presentation not found', 'err'); return go('presenter'); }
     const first = !p; p = np;
@@ -1696,6 +1830,7 @@ function viewPresent(code) {
     const s = p.slides[p.current || 0];
     if (p.intro) {
       if (slideId !== '__intro' || (p.title !== lastTitle)) { slideId = '__intro'; lastTitle = p.title; unsubR && unsubR(); unsubR = null; res = []; paintWelcome(); }
+      else paintJoined();
     } else if (s.id !== slideId) {
       slideId = s.id; unsubR && unsubR(); res = [];
       paintSlide();
@@ -1755,10 +1890,63 @@ function viewPresent(code) {
       ${welcomeHTML(p.title)}
       <div class="wel-join">${window.QRCode ? '<div class="wel-qr" id="welQr" title="Click to enlarge"></div>' : ''}
         <div class="txt">Join at <b>${esc(host)}</b><br><span class="muted">→ User Mode → enter the Presenter ID</span></div>
-        <span class="codebig" id="welCode" title="Click to enlarge">${fmtCode(code)}</span></div></div></div>`;
+        <span class="codebig" id="welCode" title="Click to enlarge">${fmtCode(code)}</span></div>
+      <button class="wel-joined" id="welJoined" title="See who joined"></button></div></div>`;
     if (window.QRCode) { try { new QRCode($('#welQr'), { text: joinUrl, width: 256, height: 256, colorDark: '#1B2559' }); } catch {} $('#welQr').onclick = bigQR; }
     $('#welCode').onclick = bigQR;
+    $('#welJoined').onclick = joinedPopup;
     const c = $('#cnt'); if (c) c.textContent = 0;
+    paintJoined();
+  }
+  const jName = j => (j.data && j.data.name) || '';
+  // Live "who joined" button on the welcome slide
+  function paintJoined(grew = false) {
+    const b = $('#welJoined');
+    if (b) {
+      const n = joins.length, named = joins.filter(jName), show = named.slice(-4).reverse();
+      b.innerHTML = (show.length ? `<span class="stack">${show.map(j => avatar(jName(j))).join('')}${named.length > 4 ? `<span class="av more">+${named.length - 4}</span>` : ''}</span>` : '<span class="ico">👥</span>')
+        + `<span><b id="welJn">${n}</b> ${n === 1 ? 'mentee' : 'mentees'} joined</span><span class="muted" style="font-size:14px">· See who →</span>`;
+      if (grew) { b.classList.remove('ping'); void b.offsetWidth; b.classList.add('ping'); }
+    }
+    setNum($('#barJn'), joins.length);
+    if (jnPop && document.body.contains(jnPop.el)) paintPopup(); else jnPop = null;
+  }
+  function joinedPopup() {
+    jnPop = modal(`<div class="jn-head"><div><span class="eyebrow">Live · updates as mentees join</span><h3>👥 Who joined</h3>
+        <p class="sub" style="margin:0">${esc(p.title)}</p></div><div class="jn-count"><span id="jnN">0</span><small>joined</small></div></div>
+      <div class="jn-tools"><input class="input" id="jnQ" placeholder="🔎 Search names…">
+        <label class="switch"><input type="checkbox" id="jnAsk" ${p.askName ? 'checked' : ''}><span class="sw"></span>Ask names</label></div>
+      <div id="jnBody"></div>
+      <div class="jn-foot"><button class="btn sm ghost" id="jnClear">↺ Clear list</button><button class="btn primary" data-x>Close</button></div>`, { wide: true });
+    const el = jnPop.el; seenJ.clear(); joins.forEach(j => seenJ.add(j.voter + jName(j)));
+    $('[data-x]', el).onclick = jnPop.close;
+    $('#jnQ', el).oninput = () => paintPopup(true);
+    $('#jnAsk', el).onchange = e => { Store.update(code, { askName: e.target.checked }); toast(e.target.checked ? 'Mentees will now be asked for their name 👤' : 'Names off — mentees stay anonymous 🕶️'); };
+    let armed = false;
+    $('#jnClear', el).onclick = async e => {
+      const b = e.currentTarget; if (!armed) { armed = true; b.textContent = 'Click again to clear'; b.classList.add('pink'); setTimeout(() => { armed = false; if (b.isConnected) { b.textContent = '↺ Clear list'; b.classList.remove('pink'); } }, 3000); return; }
+      armed = false; b.disabled = true;
+      // Mentees still on the page re-register straight away, so the list refills with whoever is really here
+      try { await Store.clearResponses(code, '__join'); await Store.update(code, { joinEpoch: (p.joinEpoch || 0) + 1 }); toast('List cleared — present mentees will reappear'); }
+      catch (err) { showError('Could not clear the list', err); }
+      if (b.isConnected) { b.disabled = false; b.textContent = '↺ Clear list'; b.classList.remove('pink'); }
+    };
+    paintPopup(true);
+  }
+  function paintPopup(fresh = false) {
+    const el = jnPop && jnPop.el; if (!el) return;
+    setNum($('#jnN', el), joins.length);
+    const ask = $('#jnAsk', el); if (ask && ask.checked !== !!p.askName) ask.checked = !!p.askName;
+    const q = ($('#jnQ', el).value || '').trim().toLowerCase();
+    const named = joins.filter(jName), anon = joins.length - named.length;
+    const list = named.filter(j => !q || jName(j).toLowerCase().includes(q)).slice().reverse();
+    const t0 = Store.now();
+    const ago = ts => { const s = Math.max(0, Math.round((t0 - (ts || t0)) / 1000)); return s < 60 ? 'just now' : s < 3600 ? Math.floor(s / 60) + 'm ago' : Math.floor(s / 3600) + 'h ago'; };
+    $('#jnBody', el).innerHTML = (!p.askName && joins.length ? `<div class="jn-anon"><span style="font-size:26px">🕶️</span><span>Names are off for this presentation, so mentees joined anonymously. Switch on <b>Ask names</b> and everyone on the page will be asked for their name right away.</span></div>` : '')
+      + (anon && p.askName ? `<div class="jn-anon" style="padding:10px 14px;font-size:14px">⏳ ${anon} mentee${anon === 1 ? ' is' : 's are'} still typing a name or joined before names were on.</div>` : '')
+      + (list.length ? `<div class="jn-grid">${list.map((j, i) => { const k = j.voter + jName(j), isNew = !fresh && !seenJ.has(k); seenJ.add(k);
+          return `<div class="jn-item ${isNew ? 'new' : ''}" style="animation-delay:${fresh ? Math.min(i, 20) * 35 : 0}ms">${avatar(jName(j))}<span class="jn-tx"><b title="${esc(jName(j))}">${esc(jName(j))}</b><small>joined ${ago(j.ts)}</small></span></div>`; }).join('')}</div>`
+        : joins.length && !p.askName ? '' : `<div class="jn-empty"><span class="em">${q ? '🔎' : '👋'}</span>${q ? 'No names match your search.' : 'No one has joined yet. Ask mentees to scan the QR code!'}</div>`);
   }
   function paintSlide() {
     const s = p.slides[p.current || 0];
@@ -1776,7 +1964,7 @@ function viewPresent(code) {
     const el = $('#res'); if (!el || !p || p.intro || (p.slides[p.current || 0] || {}).type === 'blank') return;
     const s = p.slides[p.current || 0];
     const voters = new Set(res.map(r => r.voter)).size;
-    const c = $('#cnt'); if (c) c.textContent = s.type === 'qa' ? res.length : voters;
+    setNum($('#cnt'), s.type === 'qa' ? res.length : voters);
     if (p.hideResults && s.type !== 'fff') { el.dataset.mkey = ''; el.innerHTML = `<div class="hidden-res"><b>${voters}</b>responses so far · results hidden 🙈</div>`; return; }
     const { key, html } = renderResults(s, res, { reveal: p.reveal, presenter: true, fff: (p.fffState || {})[s.id], now: Store.now() });
     morph(el, key, html);
@@ -1788,8 +1976,8 @@ function viewPresent(code) {
         <div class="group"><button class="btn sm" disabled>← Prev</button>
           <span style="align-self:center;font-weight:900;padding:0 10px">👋 Welcome</span>
           <button class="btn sm primary" id="b-next">Start · Question 1 →</button></div>
-        <div class="group"><button class="btn sm" id="b-fs" title="F">⛶</button></div>`;
-      $('#b-exit').onclick = () => go('presenter'); $('#b-next').onclick = () => nav(1); $('#b-fs').onclick = toggleFs;
+        <div class="group"><button class="btn sm bar-joined" id="b-joined" title="See who joined">👥 Joined <b id="barJn">${joins.length}</b></button><button class="btn sm" id="b-fs" title="F">⛶</button></div>`;
+      $('#b-exit').onclick = () => go('presenter'); $('#b-next').onclick = () => nav(1); $('#b-fs').onclick = toggleFs; $('#b-joined').onclick = joinedPopup;
       return;
     }
     $('#bar').innerHTML = `
@@ -1836,7 +2024,7 @@ function viewJoin() {
       <p class="muted" style="font-weight:700">You'll find the 6-digit code on the presenter's screen.</p>
       <input class="code-in" id="code" inputmode="numeric" maxlength="7" placeholder="000000" autocomplete="off">
       <button class="btn mint submit" id="go">Join session →</button>
-      <div class="anon">🕶️ Anonymous — names are asked only for Fastest Fingers First rounds</div>
+      <div class="anon">🕶️ Your answers are anonymous — some sessions may ask for your name</div>
     </div>${miniFoot()}</div>`;
   bindHome();
   const c = $('#code'); c.focus();
@@ -1862,16 +2050,28 @@ function viewAudience(rawCode) {
   const nameKey = 'mm_name_' + code;
   const stopTick = () => { if (ffTick) { clearInterval(ffTick); ffTick = null; } };
   const hasFFF = () => (p.slides || []).some(s => s.type === 'fff');
+  const myName = () => p && p.askName ? LS.get(nameKey) || '' : '';
+  // Tell the presenter we're here (once per session list; re-sent if the list is cleared or the name changes)
+  const regKey = 'mm_j_' + code;
+  const register = () => {
+    const sig = [p.joinEpoch || 0, p.askName ? 1 : 0, myName()].join('|');
+    if (LS.get(regKey) === sig) return;
+    LS.set(regKey, sig);
+    Store.addResponse(code, '__join', p.askName ? { name: myName() } : {}).catch(e => { console.error(e); LS.del(regKey); });
+  };
+  const youAre = () => p.askName && LS.get(nameKey) ? `<div class="you-are">${avatar(LS.get(nameKey))}Joined as <b>${esc(LS.get(nameKey))}</b><button data-chname>change</button></div>` : '';
+  const bindYou = () => { const b = $('[data-chname]'); if (b) b.onclick = () => { LS.del(nameKey); shownKey = null; onP(p); }; };
   const onP = np => {
     p = np; const am = $('#am'); if (!am) return;
-    if (p && hasFFF() && !LS.get(nameKey)) { if (shownKey !== 'name') { shownKey = 'name'; stopTick(); unsubQA && unsubQA(); unsubQA = null; askName(); } return; }
+    if (p && p.askName && !LS.get(nameKey)) { if (shownKey !== 'name') { shownKey = 'name'; stopTick(); unsubQA && unsubQA(); unsubQA = null; askName(); } return; }
+    if (p) register();
     if (!p) { shownKey = 'nf'; am.innerHTML = `<div class="card aud-card waiting"><div style="font-size:54px">🔍</div><h2 style="margin:10px 0">Session not found</h2><p class="muted" style="font-weight:700;margin-bottom:18px">Check the Presenter ID and try again.</p><button class="btn mint" onclick="go('join')">Try another code</button></div>`; return; }
     if (!p.live) { if (shownKey !== 'wait') { shownKey = 'wait'; stopTick(); unsubQA && unsubQA(); unsubQA = null;
-      am.innerHTML = `<div class="card aud-card waiting"><div class="orb"></div><h2 style="font-size:28px">${esc(p.title)}</h2><p class="muted" style="font-weight:700;margin-top:8px">Waiting for the presenter to start <span class="dots"><i></i><i></i><i></i></span></p></div>`; } return; }
-    if (p.intro) { const k = 'intro:' + p.title; if (shownKey !== k) { shownKey = k; stopTick(); unsubQA && unsubQA(); unsubQA = null;
+      am.innerHTML = `<div class="card aud-card waiting"><div class="orb"></div><h2 style="font-size:28px">${esc(p.title)}</h2><p class="muted" style="font-weight:700;margin-top:8px">Waiting for the presenter to start <span class="dots"><i></i><i></i><i></i></span></p>${youAre()}</div>`; bindYou(); } return; }
+    if (p.intro) { const k = 'intro:' + p.title + ':' + myName(); if (shownKey !== k) { shownKey = k; stopTick(); unsubQA && unsubQA(); unsubQA = null;
       am.innerHTML = `<div class="card aud-card wel-card">${welcomeHTML(p.title)}
         <p class="muted" style="font-weight:800;margin-top:24px">You're in! 🎉 The first question will appear here when the presenter moves on <span class="dots"><i></i><i></i><i></i></span></p>
-        ${LS.get(nameKey) && hasFFF() ? `<div class="who" style="margin-top:14px">⚡ Playing as <b style="color:var(--ink)">${esc(LS.get(nameKey))}</b></div>` : ''}</div>`; } return; }
+        ${youAre()}</div>`; bindYou(); } return; }
     const s = p.slides[p.current || 0]; if (!s) return;
     const reset = (p.resets || {})[s.id] || 0;
     const fs = s.type === 'fff' ? (p.fffState || {})[s.id] || {} : {};
@@ -1883,25 +2083,34 @@ function viewAudience(rawCode) {
   const unsub = Store.watch(code, onP);
   cleanups.push(() => { unsub && unsub(); unsubQA && unsubQA(); stopTick(); });
 
+  // Name-entry slide — shown first when the presenter has "Ask names" on
   function askName() {
-    $('#am').innerHTML = `<div class="card aud-card" style="text-align:center">
-      <div style="font-size:54px;animation:bob 1.8s ease-in-out infinite">⚡</div>
-      <h2 style="font-size:28px;margin:8px 0 6px">What's your name?</h2>
-      <p class="muted" style="font-weight:700;margin-bottom:18px">This session has a <b style="color:var(--ink)">Fastest Fingers First</b> round. Your name is shown <b style="color:var(--ink)">only</b> on that leaderboard — every other answer stays anonymous.</p>
-      <input class="input" id="nm" maxlength="30" placeholder="Your name" value="${esc(LS.get('mm_name_last') || '')}" style="font-size:18px;padding:14px;text-align:center">
-      <button class="btn primary submit" id="nmGo">Let's go →</button></div>`;
-    const nm = $('#nm'); nm.focus(); nm.select();
+    const last = LS.get('mm_name_last') || '';
+    $('#am').innerHTML = `<div class="card aud-card name-card">
+      <div class="name-step"><i class="on"></i><i></i> Step 1 of 2 · Your name</div>
+      <div class="name-av" id="nmAv">${last ? esc(initials(last)) : '👋'}</div>
+      <div class="name-hi" id="nmHi">${last ? 'Hi, ' + esc(last.split(' ')[0]) + '!' : ''}</div>
+      <h2>What's your name?</h2>
+      <p class="muted" style="font-weight:700;margin-bottom:18px">You're joining <b style="color:var(--ink)">${esc(p.title)}</b>. Your name lets the presenter see who's here${hasFFF() ? ' and appears on the <b style="color:var(--ink)">Fastest Fingers First</b> leaderboard' : ''}. Your other answers stay anonymous.</p>
+      <input class="input" id="nm" maxlength="30" placeholder="Type your name" value="${esc(last)}" autocomplete="name">
+      <button class="btn primary submit" id="nmGo">Join session →</button></div>`;
+    const nm = $('#nm'), av = $('#nmAv'), hi = $('#nmHi');
+    const paintAv = () => { const v = nm.value.trim();
+      av.textContent = v ? initials(v) : '👋'; av.style.background = v ? PALETTE[hashStr(v.toLowerCase()) % PALETTE.length] : 'var(--yellow)';
+      hi.textContent = v ? 'Hi, ' + v.split(/\s+/)[0] + '!' : ''; av.classList.remove('typing'); void av.offsetWidth; av.classList.add('typing'); };
+    paintAv(); nm.oninput = paintAv;
+    nm.focus(); nm.select();
     const ok = () => { const v = nm.value.replace(/\s+/g, ' ').trim().slice(0, 30);
       if (!v) { nm.classList.remove('shake'); void nm.offsetWidth; nm.classList.add('shake'); return toast('Please enter your name', 'err'); }
-      LS.set(nameKey, v); LS.set('mm_name_last', v); shownKey = null; onP(p); };
+      LS.set(nameKey, v); LS.set('mm_name_last', v); confetti(); toast('Welcome, ' + v + '! 🎉', 'ok'); shownKey = null; onP(p); };
     $('#nmGo').onclick = ok; nm.onkeydown = e => { if (e.key === 'Enter') ok(); };
   }
 
   /* ---------- Fastest Fingers First (participant) ---------- */
   function fff(s, reset) {
-    const am = $('#am'), fs = (p.fffState || {})[s.id] || {}, lim = fffLimit(s), vk = votedKey(s, reset), name = LS.get(nameKey) || 'Anonymous';
+    const am = $('#am'), fs = (p.fffState || {})[s.id] || {}, lim = fffLimit(s), vk = votedKey(s, reset), name = myName() || 'Anonymous';
     const left = () => (fs.start || 0) + lim - Store.now();
-    const who = changeable => `<div class="who">⚡ Playing as <b style="color:var(--ink)">${esc(name)}</b>${changeable ? ' · <button id="chName">change</button>' : ''}</div>`;
+    const who = changeable => `<div class="who">⚡ Playing as <b style="color:var(--ink)">${esc(name)}</b>${changeable && p.askName ? ' · <button id="chName">change</button>' : ''}</div>`;
     const bindWho = () => { const b = $('#chName'); if (b) b.onclick = () => { LS.del(nameKey); shownKey = null; onP(p); }; };
     if (fs.shown) return fffResults(s, fs);
     if (!fs.start) {
