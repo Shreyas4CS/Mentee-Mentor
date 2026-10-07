@@ -699,6 +699,14 @@ footer.foot{background:var(--navy);color:#C9CFEA;padding:70px 0 26px;border-top:
 .jn-anon{display:flex;gap:12px;align-items:center;padding:14px 16px;border-radius:16px;background:var(--soft);font-weight:700;margin-bottom:14px}
 .jn-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
 /* ---------- Scenario ---------- */
+.sec-in{display:flex;align-items:center;gap:8px}.sec-in .input{flex:1}.sec-in span{font-weight:900;color:var(--muted)}
+.q-tabs{display:flex;flex-wrap:wrap;gap:6px}
+.q-tab{padding:7px 12px;border-radius:10px;border:2px solid var(--line);background:#fff;font-weight:900;font-size:13px;transition:all .2s var(--spring)}
+.q-tab:hover{border-color:#0CA678;transform:translateY(-2px)}
+.q-tab.on{background:#0CA678;color:#fff;border-color:var(--navy);box-shadow:2px 2px 0 var(--navy)}
+.q-tab.add{border-style:dashed;color:#0CA678}
+.q-box{padding:14px;border:2px solid #0CA678;border-radius:16px;background:#F3FCF8;margin-bottom:12px;animation:rise .35s var(--spring) backwards}
+.q-box-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-family:Fredoka;font-size:17px}
 .sc-read{display:flex;flex-direction:column;gap:16px;width:min(1000px,100%);margin:0 auto;animation:rise .6s var(--spring) backwards}
 .sc-clock{display:flex;align-items:center;gap:12px}
 .sc-clock .ff-track{margin:0;flex:1;height:14px}
@@ -887,7 +895,17 @@ const TYPES = {
   pin:       { name: 'Pin on Image',     color: '#6C5CE7', desc: 'Drop a pin on a picture, map or circuit diagram.' }
 };
 const EDIT_TYPES = () => [...TYPE_ORDER, 'blank'];   // blank slides can be added but aren't a "question type"
-const slideLabel = s => s.type === 'blank' ? (s.message || 'Blank slide') : (s.question || TYPES[s.type].name);
+// One question inside a Scenario (same settings as Fastest Fingers First)
+function newScenarioQ(o = {}) { return { id: rid(6), question: 'Type your question…', mode: 'mc', options: ['Option A', 'Option B', 'Option C', 'Option D'], correct: -1, answer: '', items: ['Sense', 'Decide', 'Act'], arrange: 'steps', timeLimit: 20, ...o }; }
+const SC_QFIELDS = ['question', 'mode', 'options', 'correct', 'answer', 'items', 'arrange', 'timeLimit'];
+const scQs = s => Array.isArray(s.questions) && s.questions.length ? s.questions
+  : [Object.fromEntries(SC_QFIELDS.filter(k => k in s).map(k => [k, s[k]]).concat([['id', 'q']]))];   // older single-question scenarios
+// Presenting/joining: each Scenario question becomes its own step. Only the first one shows the paragraph.
+const expandSlides = sl => (sl || []).flatMap(s => s.type !== 'scenario' || s.group ? [s]
+  : scQs(s).map((q, i, a) => ({ ...q, id: i ? s.id + '-' + (q.id || i) : s.id, type: 'scenario', scenario: s.scenario, readTime: s.readTime, noRead: i > 0, part: i, parts: a.length, group: s.id })));
+const scRead = s => !!s && s.type === 'scenario' && !s.noRead;
+const typeLabel = s => TYPES[s.type].name + (s.type === 'scenario' && s.parts > 1 ? ` · Q${s.part + 1} of ${s.parts}` : '');
+const slideLabel = s => s.type === 'blank' ? (s.message || 'Blank slide') : s.type === 'scenario' && !s.group ? '📖 ' + ((scQs(s)[0] || {}).question || 'Scenario') + (scQs(s).length > 1 ? ` (+${scQs(s).length - 1} more)` : '') : (s.question || TYPES[s.type].name);
 const TYPE_ORDER = ['mc','fff','scenario','wordcloud','open','scales','ranking','qa','guess','points','grid','form','pin'];
 const ticon = (t, size) => `<span class="ticon" style="color:${TYPES[t].color};${size ? `width:${size}px;height:${size}px` : ''}">${ICONS[t]}</span>`;
 
@@ -908,7 +926,9 @@ function newSlide(type) {
     case 'form': return { ...s, question: 'Quick workshop feedback', fields: [{ label: 'Your school', type: 'text', req: false }, { label: 'Favourite activity', type: 'text', req: true }, { label: 'Any suggestions?', type: 'textarea', req: false }] };
     case 'pin': return { ...s, question: 'Tap where you would like to explore first', image: PIN_PLACEHOLDER };
     case 'blank': return { ...s, question: '', message: 'Wait for the next question' };
-    case 'scenario': return { ...s, question: 'Which sensor should Riya add so the robot stops before hitting the wall?', mode: 'mc', options: ['LDR', 'Ultrasonic sensor', 'Temperature sensor', 'Buzzer'], correct: 1, answer: '', items: ['Sense', 'Decide', 'Act'], arrange: 'steps', timeLimit: 20, readTime: 30,
+    case 'scenario': return { ...s, readTime: 30, questions: [
+        newScenarioQ({ question: 'Which sensor should Riya add so the robot stops before hitting the wall?', options: ['LDR', 'Ultrasonic sensor', 'Temperature sensor', 'Buzzer'], correct: 1 }),
+        newScenarioQ({ question: 'What does the sensor listen for to measure distance?', mode: 'short', answer: 'echo, the echo, echoes' })],
       scenario: 'Riya is building a small robot car for her school science fair. On test day the robot keeps crashing into the classroom wall because it cannot tell how far away objects are.\n\nHer teacher suggests adding a sensor that sends out sound waves and listens for the echo, so the robot can measure the distance and stop in time.' };
     case 'fff': return { ...s, question: 'Which sensor measures distance using sound waves?', mode: 'mc', options: ['LDR', 'Ultrasonic sensor', 'IR sensor', 'Thermistor'], correct: 1, answer: '', items: ['Sensors', 'collect', 'data', 'from', 'the', 'environment'], arrange: 'sentence', timeLimit: 20 };
   }
@@ -963,7 +983,8 @@ const FirebaseStore = (() => {
   const isNumObj = x => x && typeof x === 'object' && !Array.isArray(x) && Object.keys(x).length && Object.keys(x).every(k => /^\d+$/.test(k));
   const normP = v => {
     if (!v) return null;
-    v.slides = toArr(v.slides).map(sl => { ['options', 'items', 'statements', 'fields'].forEach(k => { if (k in sl || isNumObj(sl[k])) sl[k] = toArr(sl[k]); }); return sl; });
+    const fix = o => { ['options', 'items', 'statements', 'fields'].forEach(k => { if (k in o || isNumObj(o[k])) o[k] = toArr(o[k]); }); return o; };
+    v.slides = toArr(v.slides).map(sl => { fix(sl); if (sl.questions) sl.questions = toArr(sl.questions).map(fix); return sl; });
     v.resets = v.resets || {}; v.fffState = v.fffState || {}; return v;
   };
   const normR = (id, r) => {
@@ -1243,7 +1264,7 @@ async function viewDashboard() {
     b.disabled = true;
     try {
       await Store.clearAll(p.code);
-      const resets = { ...(p.resets || {}) }; (p.slides || []).forEach(sl => { resets[sl.id] = (resets[sl.id] || 0) + 1; });
+      const resets = { ...(p.resets || {}) }; expandSlides(p.slides).forEach(sl => { resets[sl.id] = (resets[sl.id] || 0) + 1; });
       await Store.update(p.code, { resets, fffState: {}, reveal: false, joinEpoch: (p.joinEpoch || 0) + 1 });
       toast('All responses reset ✓', 'ok');
     } catch (e) { console.error(e); showError('Could not reset responses', e); }
@@ -1523,14 +1544,14 @@ function fffBoard(s, ranked, { me = null, max = 100 } = {}) {
 function renderFFF(slide, res, st) {
   const fs = st.fff || {}, start = fs.start || 0, lim = fffLimit(slide);
   const now = st.now ?? Date.now();
-  const sc = slide.type === 'scenario';
-  const phase = fs.shown ? 'shown' : !start ? (sc && fs.read ? 'read' : 'idle') : now < start + lim ? 'run' : 'up';
+  const sc = slide.type === 'scenario', rd = scRead(slide);
+  const phase = fs.shown ? 'shown' : !start ? (rd && fs.read ? 'read' : 'idle') : now < start + lim ? 'run' : 'up';
   const answered = fffRanked(slide, res, start).length;
-  if (sc && (phase === 'idle' || phase === 'read')) {
+  if (rd && (phase === 'idle' || phase === 'read')) {
     const rm = readMs(slide), left = phase === 'read' ? Math.max(0, fs.read + rm - now) : rm, long = String(slide.scenario || '').length > 700;
     const key = 'sc:' + slide.id + ':' + phase + ':' + (st.preview ? hashStr(slide.scenario || '') : '');
     if (phase === 'idle' && !st.preview) return { key, html: `<div class="ff-state"><span class="em">📖</span><h2>Scenario round</h2>
-      <p>Read the scenario for <b style="color:var(--ink)">${rm / 1000} seconds</b>, then it disappears and the question appears · ${lim / 1000} seconds to answer · fastest correct answer wins</p>
+      <p>Read the scenario for <b style="color:var(--ink)">${rm / 1000} seconds</b>, then it disappears and ${slide.parts > 1 ? `<b style="color:var(--ink)">${slide.parts} questions</b> follow` : 'the question appears'} · ${lim / 1000} seconds to answer${slide.parts > 1 ? ' the first one' : ''} · fastest correct answer wins</p>
       ${st.presenter ? `<p style="margin-top:10px">Press <b style="color:var(--ink)">📖 Show scenario</b> below to begin.</p>` : ''}</div>` };
     return { key, html: `<div class="sc-read"><div class="sc-clock"><span class="sc-lbl">📖 Read carefully</span><div class="ff-track"><div class="ff-fill" data-k="scb" style="width:${(left / rm * 100).toFixed(1)}%"></div></div><b class="${left <= 5000 && phase === 'read' ? 'low' : ''}" data-k="sct" data-text>${Math.ceil(left / 1000)}s</b></div>
       <div class="sc-para ${long ? 'long' : ''}">${scenarioHTML(slide)}</div>
@@ -1611,7 +1632,19 @@ function viewEditor(code) {
     if (!p.slides || !p.slides.length) p.slides = [newSlide('mc')];
     ed = { p: clone(p), sel: 0, dirty: false }; paint();
   });
-  const cur = () => ed.p.slides[ed.sel];
+  // For a Scenario, the panel edits the selected question; paragraph and reading time live on the slide itself
+  const SC_SLIDE = new Set(['id', 'type', 'scenario', 'readTime', 'questions']);
+  const cur = () => {
+    const S = ed.p.slides[ed.sel]; if (!S || S.type !== 'scenario') return S;
+    if (!Array.isArray(S.questions) || !S.questions.length) { S.questions = scQs(S).map(q => ({ ...q, id: rid(6) })); SC_QFIELDS.forEach(k => delete S[k]); }
+    if (ed.qFor !== S.id) { ed.qFor = S.id; ed.qsel = 0; }
+    ed.qsel = clamp(ed.qsel || 0, 0, S.questions.length - 1);
+    const q = S.questions[ed.qsel];
+    return new Proxy(q, {
+      get: (o, k) => SC_SLIDE.has(k) ? S[k] : k === 'noRead' ? ed.qsel > 0 : k === 'part' ? ed.qsel : k === 'parts' ? S.questions.length : o[k],
+      set: (o, k, v) => { (SC_SLIDE.has(k) ? S : o)[k] = v; return true; }
+    });
+  };
   const onBefore = e => { if (ed && ed.dirty) { e.preventDefault(); e.returnValue = ''; } };
   addEventListener('beforeunload', onBefore); cleanups.push(() => removeEventListener('beforeunload', onBefore));
   const onKey = e => { if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); save(); } };
@@ -1646,8 +1679,19 @@ function viewEditor(code) {
   function validate() {
     for (const [i, s] of ed.p.slides.entries()) {
       const bad = m => { ed.sel = i; paintSide(); paintCanvas(); paintPanel(); toast(`Slide ${i + 1}: ${m}`, 'err'); return false; };
+      if (s.type === 'scenario') {
+        if (!String(s.scenario || '').trim()) return bad('add the scenario paragraph');
+        if (!(Number(s.readTime) >= 5)) return bad('show the scenario for at least 5 seconds');
+        for (const [j, q] of scQs(s).entries()) {
+          const bq = m => { ed.qFor = s.id; ed.qsel = j; return bad(`question ${j + 1}: ${m}`); };
+          if (!String(q.question || '').trim()) return bq('add the question text');
+          if (q.mode === 'mc' && (q.options || []).length < 2) return bq('add at least 2 options');
+          if (q.mode === 'order' && (q.items || []).length < 2) return bq('add at least 2 words or steps to arrange');
+          if (!(Number(q.timeLimit) >= 3)) return bq('time limit must be at least 3 seconds');
+        }
+        continue;
+      }
       if (s.type !== 'blank' && !String(s.question || '').trim()) return bad('add a question');
-      if (s.type === 'scenario' && !String(s.scenario || '').trim()) return bad('add the scenario paragraph');
       if (['mc', 'ranking', 'points'].includes(s.type) && (s[s.type === 'mc' ? 'options' : 'items'].filter(x => x.trim()).length < 2)) return bad('add at least 2 options');
       if (s.type === 'scales' && (!s.statements.length || s.min >= s.max)) return bad('needs statements and min < max');
       if (s.type === 'grid' && (!s.items.length || s.gmin >= s.gmax)) return bad('needs items and min < max');
@@ -1664,13 +1708,13 @@ function viewEditor(code) {
     if (saving) return false;
     if (!ed.p.title.trim()) { toast('Please add a title', 'err'); $('#title').focus(); return false; }
     // tidy: drop empty list rows
-    ed.p.slides.forEach(s => ['options', 'items', 'statements'].forEach(k => { if (Array.isArray(s[k])) s[k] = s[k].map(x => x.trim()).filter(Boolean); }));
-    ed.p.slides.forEach(s => { if (isFF(s) && s.correct >= (s.options || []).length) s.correct = -1; });
+    const tidy = s => { ['options', 'items', 'statements'].forEach(k => { if (Array.isArray(s[k])) s[k] = s[k].map(x => x.trim()).filter(Boolean); }); if (s.correct >= (s.options || []).length && Array.isArray(s.options)) s.correct = -1; };
+    ed.p.slides.forEach(s => { if (s.type === 'scenario' && Array.isArray(s.questions)) s.questions.forEach(tidy); else { ['options', 'items', 'statements'].forEach(k => { if (Array.isArray(s[k])) s[k] = s[k].map(x => x.trim()).filter(Boolean); }); if (isFF(s) && s.correct >= (s.options || []).length) s.correct = -1; } });
     if (!validate()) return false;
     saving = true;
     try {
       const cur = await Store.get(ed.p.code) || {};
-      const current = clamp(cur.current || 0, 0, ed.p.slides.length - 1);
+      const current = clamp(cur.current || 0, 0, expandSlides(ed.p.slides).length - 1);
       await Store.save({ code: ed.p.code, title: ed.p.title.trim(), askName: !!ed.p.askName, slides: ed.p.slides, current });
       ed.dirty = false; const s = $('#ss'); if (s) { s.classList.remove('dirty'); s.lastElementChild.textContent = 'Saved'; }
       toast('Presentation saved ✓', 'ok'); paintPanel(); return true;
@@ -1687,7 +1731,7 @@ function viewEditor(code) {
       const i = +t.dataset.i, a = e.target.closest('[data-a]')?.dataset.a, S = ed.p.slides;
       if (a === 'up' && i > 0) { [S[i - 1], S[i]] = [S[i], S[i - 1]]; ed.sel = i - 1; dirty(); }
       else if (a === 'down' && i < S.length - 1) { [S[i + 1], S[i]] = [S[i], S[i + 1]]; ed.sel = i + 1; dirty(); }
-      else if (a === 'dup') { S.splice(i + 1, 0, { ...clone(S[i]), id: rid(8) }); ed.sel = i + 1; dirty(); }
+      else if (a === 'dup') { const c = { ...clone(S[i]), id: rid(8) }; if (Array.isArray(c.questions)) c.questions.forEach(q => q.id = rid(6)); S.splice(i + 1, 0, c); ed.sel = i + 1; dirty(); }
       else if (a === 'del') { if (S.length === 1) return toast('A presentation needs at least one slide', 'err'); S.splice(i, 1); ed.sel = Math.min(ed.sel, S.length - 1); dirty(); }
       else ed.sel = i;
       paintSide(); paintCanvas(); paintPanel();
@@ -1715,9 +1759,9 @@ function viewEditor(code) {
     });
     $('#addSlide').onclick = () => pickType(t => { ed.p.slides.splice(ed.sel + 1, 0, newSlide(t)); ed.sel++; dirty(); paintSide(); paintCanvas(); paintPanel(); });
   }
-  function refreshThumb() { const t = $(`.thumb[data-i="${ed.sel}"] .tt`); if (t) t.textContent = slideLabel(cur()); }
+  function refreshThumb() { const t = $(`.thumb[data-i="${ed.sel}"] .tt`); if (t) t.textContent = slideLabel(ed.p.slides[ed.sel]); }
   function paintCanvas() {
-    const s = cur(); $('#cchip').innerHTML = `${ticon(s.type)} ${TYPES[s.type].name} · slide ${ed.sel + 1} of ${ed.p.slides.length}`;
+    const s = cur(); $('#cchip').innerHTML = `${ticon(s.type)} ${typeLabel(s)} · slide ${ed.sel + 1} of ${ed.p.slides.length}`;
     if (s.type === 'blank') { $('#canvas').innerHTML = `<div class="wel">${welcomeHTML(ed.p.title)}<div class="wel-wait">⏳ ${esc(s.message || 'Wait for the next question')}</div></div>`; return; }
     const { html } = renderResults(s, sample ? sampleResponses(s) : [], { reveal: s.type === 'guess' && sample, fff: sample ? { start: 1, shown: true } : null, preview: true });
     $('#canvas').innerHTML = `<h2 class="q-title">${esc(s.question || 'Type your question…')}</h2><div class="res">${html}</div>`;
@@ -1754,8 +1798,11 @@ function viewEditor(code) {
         <div class="hint">👋 Shows the CognoSpace logo, “Welcome to Mentee-Mentor” and the session name, with this message underneath. Use it as a pause between questions.</div>`; break;
       case 'scenario': case 'fff': body = (s.type === 'scenario' ? `<div class="field"><label>Scenario paragraph</label><textarea class="input" data-f="scenario" maxlength="4000" rows="9" placeholder="Describe the situation mentees should read…">${esc(s.scenario)}</textarea>
           <div class="hint" style="margin-top:6px">📖 Up to 4000 characters. Leave a blank line between paragraphs. <span id="scLen">${String(s.scenario || '').length}</span>/4000</div></div>
-        <div class="field"><label>Show the scenario for</label><select class="input" data-f="readTime" data-type="num">${[10, 15, 20, 30, 45, 60, 90, 120, 180, 240, 300].map(n => `<option value="${n}" ${Number(s.readTime) === n ? 'selected' : ''}>${n < 60 ? n + ' seconds' : n / 60 + ' minute' + (n === 60 ? '' : 's')}</option>`).join('')}</select></div>
-        <div class="hint" style="margin-bottom:16px">⏱ After this time the paragraph disappears for everyone and the question below starts automatically, Fastest Fingers First style.</div>` : '') + `<div class="field"><label>Answer type</label><select class="input" data-f="mode">
+        <div class="field"><label>Show the scenario for (seconds)</label><div class="sec-in"><input class="input" type="number" min="5" max="3600" step="1" data-f="readTime" data-type="num" value="${esc(s.readTime)}" placeholder="e.g. 45"><span>sec</span></div></div>
+        <div class="hint" style="margin-bottom:16px">⏱ After this time the paragraph disappears for everyone and question 1 starts automatically, Fastest Fingers First style.</div>
+        <div class="field"><label>Questions about this scenario</label><div class="q-tabs">${s.questions.map((q, i) => `<button class="q-tab ${i === s.part ? 'on' : ''}" data-qsel="${i}" title="${esc(q.question)}">Q${i + 1}</button>`).join('')}<button class="q-tab add" data-qadd title="Add another question">＋ Add</button></div></div>
+        <div class="q-box"><div class="q-box-head"><b>Question ${s.part + 1} of ${s.parts}</b>${s.parts > 1 ? `<button class="btn sm ghost" data-qdel title="Delete this question">🗑 Delete</button>` : ''}</div>
+        <div class="field"><label>Question</label><textarea class="input" data-f="question" maxlength="500" rows="3">${esc(s.question)}</textarea></div>` : '') + `<div class="field"><label>Answer type</label><select class="input" data-f="mode">
           ${[['mc', 'Multiple choice (MCQ)'], ['short', 'Short answer (checked)'], ['order', 'Arrange in order'], ['open', 'Open ended (no checking)'], ['buzzer', 'Buzzer']].map(([v, l]) => `<option value="${v}" ${s.mode === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
         ${s.mode === 'order' ? `<div class="field"><label>Arrange as</label><select class="input" data-f="arrange">
             <option value="sentence" ${s.arrange !== 'steps' ? 'selected' : ''}>Words → make a sentence</option><option value="steps" ${s.arrange === 'steps' ? 'selected' : ''}>Steps → put in the right sequence</option></select></div>
@@ -1769,7 +1816,7 @@ function viewEditor(code) {
             ${s.options.map((o, i) => `<option value="${i}" ${s.correct === i ? 'selected' : ''}>${String.fromCharCode(65 + i)} · ${esc(o || 'Option ' + (i + 1))}</option>`).join('')}</select></div>`
         : `<div class="field"><label>Accepted answers</label><input class="input" data-f="answer" value="${esc(s.answer)}" maxlength="120" placeholder="e.g. Ultrasonic, HC-SR04"></div>
           <div class="hint">Separate several accepted answers with commas. Matching ignores capitals and punctuation. Leave empty to rank by speed only.</div>`}
-        <div class="field"><label>Time limit</label><select class="input" data-f="timeLimit" data-type="num">${[5, 10, 15, 20, 30, 45, 60, 90, 120].map(n => `<option value="${n}" ${Number(s.timeLimit) === n ? 'selected' : ''}>${n} seconds</option>`).join('')}</select></div>
+        <div class="field"><label>Time limit to answer (seconds)</label><div class="sec-in"><input class="input" type="number" min="3" max="3600" step="1" data-f="timeLimit" data-type="num" value="${esc(s.timeLimit)}" placeholder="e.g. 20"><span>sec</span></div></div>${s.type === 'scenario' ? '</div>' : ''}
         <div class="hint">⚡ ${ed.p.askName ? 'Names are on for this presentation, so the leaderboard shows <b>who</b> answered first.' : 'Names are off, so the leaderboard shows <b>Anonymous</b>. Switch on <b>👤 Ask names</b> at the top to show names.'}</div>`; break;
       case 'pin': body = `<div class="field"><label>Image</label><img class="imgprev" src="${esc(s.image)}" alt="">
           <input class="input" data-f="imageUrl" placeholder="Paste image URL…" value="${s.image.startsWith('data:') ? '' : esc(s.image)}" style="margin-bottom:8px">
@@ -1778,7 +1825,7 @@ function viewEditor(code) {
     }
     $('#panel').innerHTML = `<h4>${ticon(s.type)} Slide settings</h4>
       <div class="field"><label>Question type</label><select class="input" id="typeSel">${EDIT_TYPES().map(t => `<option value="${t}" ${t === s.type ? 'selected' : ''}>${TYPES[t].name}</option>`).join('')}</select></div>
-      ${s.type === 'blank' ? '' : `<div class="field"><label>Question</label><textarea class="input" data-f="question" maxlength="${s.type === 'scenario' ? 500 : 200}" rows="3">${esc(s.question)}</textarea></div>`}
+      ${['blank', 'scenario'].includes(s.type) ? '' : `<div class="field"><label>Question</label><textarea class="input" data-f="question" maxlength="200" rows="3">${esc(s.question)}</textarea></div>`}
       ${body}`;
     bindPanel();
   }
@@ -1798,7 +1845,10 @@ function viewEditor(code) {
       dirty(); paintCanvas(); refreshThumb();
     };
     panel.onclick = e => {
-      const t = e.target;
+      const t = e.target.closest('[data-qsel],[data-qadd],[data-qdel]') || e.target;
+      if (s.type === 'scenario' && t.dataset.qsel !== undefined) { ed.qsel = +t.dataset.qsel; paintPanel(); paintCanvas(); return; }
+      if (s.type === 'scenario' && t.hasAttribute('data-qadd')) { s.questions.push(newScenarioQ({ question: '' })); ed.qsel = s.questions.length - 1; dirty(); paintPanel(); paintCanvas(); refreshThumb(); $('[data-f="question"]', panel)?.focus(); return; }
+      if (s.type === 'scenario' && t.hasAttribute('data-qdel')) { if (s.questions.length <= 1) return; s.questions.splice(ed.qsel, 1); ed.qsel = Math.max(0, ed.qsel - 1); dirty(); paintPanel(); paintCanvas(); refreshThumb(); toast('Question removed'); return; }
       if (t.dataset.addL) { s[t.dataset.addL].push(''); dirty(); paintPanel(); paintCanvas(); const ins = $$(`[data-l="${t.dataset.addL}"]`); ins[ins.length - 1]?.focus(); }
       else if (t.dataset.delL) { if (s[t.dataset.delL].length <= 1) return toast('Keep at least one', 'err'); const di = +t.dataset.i; s[t.dataset.delL].splice(di, 1);
         if (isFF(s) && t.dataset.delL === 'options' && s.correct >= 0) s.correct = s.correct === di ? -1 : s.correct > di ? s.correct - 1 : s.correct;
@@ -1807,7 +1857,7 @@ function viewEditor(code) {
       else if (t.dataset.delF !== undefined) { if (s.fields.length <= 1) return toast('Keep at least one field', 'err'); s.fields.splice(+t.dataset.delF, 1); dirty(); paintPanel(); paintCanvas(); }
     };
     $('#typeSel').onchange = e => {
-      const ns = newSlide(e.target.value); ns.id = s.id; if (s.question) ns.question = s.question;
+      const ns = newSlide(e.target.value); ns.id = s.id; if (s.question && ns.type !== 'scenario') ns.question = s.question;
       ed.p.slides[ed.sel] = ns; dirty(); paintSide(); paintCanvas(); paintPanel();
     };
     const up = $('#pinUp');
@@ -1869,6 +1919,7 @@ function viewPresent(code) {
   });
   cleanups.push(() => unsubJ && unsubJ());
   const unsubP = Store.watch(code, np => {
+    if (np) np = { ...np, slides: expandSlides(np.slides) };
     if (!np) { toast('Presentation not found', 'err'); return go('presenter'); }
     const first = !p; p = np;
     if (first) shell();
@@ -1896,18 +1947,18 @@ function viewPresent(code) {
   let lastPhase = '';
   const tick = setInterval(() => { if (!p || p.intro) return; const s = p.slides[p.current || 0]; if (s && isFF(s)) { scenarioAuto(s); draw(); const ph = fffPhase(s); if (ph !== lastPhase) { lastPhase = ph; paintBar(); } } }, 200);
   cleanups.push(() => clearInterval(tick));
-  function fffPhase(s) { const fs = (p.fffState || {})[s.id] || {}; return fs.shown ? 'shown' : !fs.start ? (s.type === 'scenario' && fs.read ? 'read' : 'idle') : Store.now() < fs.start + fffLimit(s) ? 'run' : 'up'; }
+  function fffPhase(s) { const fs = (p.fffState || {})[s.id] || {}; return fs.shown ? 'shown' : !fs.start ? (scRead(s) && fs.read ? 'read' : 'idle') : Store.now() < fs.start + fffLimit(s) ? 'run' : 'up'; }
   // Scenario: when the reading time ends, hide the paragraph and start the question timer for everyone
   let autoFor = null;
   function scenarioAuto(s) {
     const fs = (p.fffState || {})[s.id] || {};
-    if (s.type !== 'scenario' || !fs.read || fs.start) { if (fs.start) autoFor = null; return; }
+    if (!scRead(s) || !fs.read || fs.start) { if (fs.start) autoFor = null; return; }
     if (Store.now() >= fs.read + readMs(s) && autoFor !== s.id) { autoFor = s.id; setFS(s, { start: Store.ts() }).catch(() => { autoFor = null; }); }
   }
   // Scenario title: hide the question until the reading time is over
   function scenarioTitle(s) {
     const h = $('#stage .q-title'); if (!h) return;
-    const ph = fffPhase(s), txt = s.type !== 'scenario' ? s.question : ph === 'idle' ? '📖 Scenario round' : ph === 'read' ? '📖 Read the scenario' : s.question;
+    const ph = fffPhase(s), txt = !scRead(s) ? s.question : ph === 'idle' ? '📖 Scenario round' : ph === 'read' ? '📖 Read the scenario' : s.question;
     if (h.dataset.t2 !== txt) { const first = h.dataset.t2 === undefined; h.dataset.t2 = txt; h.textContent = txt; if (!first) { h.classList.remove('swap'); void h.offsetWidth; h.classList.add('swap'); } }
   }
   function setFS(s, patch) { const all = { ...(p.fffState || {}) }; all[s.id] = { ...(all[s.id] || {}), ...patch }; return Store.update(code, { fffState: all }); }
@@ -2013,7 +2064,7 @@ function viewPresent(code) {
         <div class="wel-wait">⏳ ${esc(s.message || 'Wait for the next question')} <span class="dots"><i></i><i></i><i></i></span></div></div></div>`;
       const c = $('#cnt'); if (c) c.textContent = 0; return;
     }
-    $('#stage').innerHTML = `<div class="stage-anim"><span class="q-chip">${ticon(s.type)} ${TYPES[s.type].name}</span>
+    $('#stage').innerHTML = `<div class="stage-anim"><span class="q-chip">${ticon(s.type)} ${typeLabel(s)}</span>
       <h1 class="q-title">${esc(s.question)}</h1><div class="res" id="res"></div></div>`;
     $('#res').onclick = e => { const b = e.target.closest('[data-ans]'); if (b) Store.setAnswered(code, b.dataset.ans, b.dataset.v === '1'); };
     draw();
@@ -2048,7 +2099,7 @@ function viewPresent(code) {
         ${isFF(s) ? '' : `<button class="btn sm ${p.hideResults ? 'on' : ''}" id="b-hide" title="H">${p.hideResults ? '👁 Show results' : '🙈 Hide results'}</button>`}
         <button class="btn sm ${p.locked ? 'on' : ''}" id="b-lock">${p.locked ? '🔒 Voting closed' : '🔓 Voting open'}</button>
         ${isFF(s) ? (() => { const fs = (p.fffState || {})[s.id] || {}, ph = fffPhase(s);
-          if (s.type === 'scenario' && !fs.start) return fs.read ? `<button class="btn sm mint" id="b-skip">⏭ Skip to question</button>` : `<button class="btn sm mint" id="b-read">📖 Show scenario</button>`;
+          if (scRead(s) && !fs.start) return fs.read ? `<button class="btn sm mint" id="b-skip">⏭ Skip to question</button>` : `<button class="btn sm mint" id="b-read">📖 Show scenario</button>`;
           return `<button class="btn sm ${fs.start ? '' : 'mint'}" id="b-fstart" ${fs.start ? 'disabled' : ''}>${!fs.start ? (s.mode === 'buzzer' ? '🔔 Open buzzers' : '▶ Start timer') : ph === 'run' ? '⏱ Running…' : '⏰ Time up'}</button>
           ${s.mode === 'buzzer' ? '' : `<button class="btn sm ${fs.shown ? 'on' : 'primary'}" id="b-fshow">${fs.shown ? '🙈 Hide leaderboard' : '🏆 Show results'}</button>`}`; })() : ''}
         ${s.type === 'guess' ? `<button class="btn sm ${p.reveal ? 'on' : 'mint'}" id="b-rev">${p.reveal ? 'Hide answer' : '🎯 Reveal answer'}</button>` : ''}
@@ -2142,7 +2193,7 @@ function viewAudience(rawCode) {
     shownKey = key; stopTick(); unsubQA && unsubQA(); unsubQA = null;
     paint(s, reset);
   };
-  const unsub = Store.watch(code, onP);
+  const unsub = Store.watch(code, np => onP(np && { ...np, slides: expandSlides(np.slides) }));
   cleanups.push(() => { unsub && unsub(); unsubQA && unsubQA(); stopTick(); });
 
   // Name-entry slide — shown first when the presenter has "Ask names" on
@@ -2175,7 +2226,7 @@ function viewAudience(rawCode) {
     const who = changeable => `<div class="who">⚡ Playing as <b style="color:var(--ink)">${esc(name)}</b>${changeable && p.askName ? ' · <button id="chName">change</button>' : ''}</div>`;
     const bindWho = () => { const b = $('#chName'); if (b) b.onclick = () => { LS.del(nameKey); shownKey = null; onP(p); }; };
     if (fs.shown) return fffResults(s, fs);
-    if (s.type === 'scenario' && !fs.start) return scenarioRead(s, fs);
+    if (scRead(s) && !fs.start) return scenarioRead(s, fs);
     if (!fs.start) {
       am.innerHTML = `<div class="card aud-card">${head(s)}${who(true)}<div class="ff-state" style="padding:20px 0"><span class="em">🏁</span><h2 style="font-size:28px">Get ready!</h2>
         <p>${s.mode === 'buzzer' ? 'The buzzer unlocks when the presenter opens it.<br>Hit it <b style="color:var(--ink)">first</b> to get the first chance to answer! 🔔'
@@ -2256,10 +2307,10 @@ function viewAudience(rawCode) {
   // Scenario: waiting screen, then the paragraph with a countdown; the question replaces it when time is up
   function scenarioRead(s, fs) {
     const am = $('#am'), rm = readMs(s), lim = fffLimit(s);
-    const top = `<div class="progress">${p.slides.map((_, i) => `<i class="${i === (p.current || 0) ? 'on' : ''}"></i>`).join('')}</div><span class="q-chip">${ticon(s.type)} ${TYPES[s.type].name}</span>`;
+    const top = `<div class="progress">${p.slides.map((_, i) => `<i class="${i === (p.current || 0) ? 'on' : ''}"></i>`).join('')}</div><span class="q-chip">${ticon(s.type)} ${typeLabel(s)}</span>`;
     if (!fs.read) {
       am.innerHTML = `<div class="card aud-card">${top}<h2 class="q-title">Scenario round</h2><div class="ff-state" style="padding:14px 0"><span class="em">📖</span><h2 style="font-size:28px">Get ready to read!</h2>
-        <p>A short scenario will appear for <b style="color:var(--ink)">${rm / 1000} seconds</b>. Read it carefully, because it disappears before the question.<br>Then you'll have <b style="color:var(--ink)">${lim / 1000} seconds</b> to answer. Fastest correct answer wins ⚡</p></div></div>`;
+        <p>A short scenario will appear for <b style="color:var(--ink)">${rm / 1000} seconds</b>. Read it carefully, because it disappears before the question${s.parts > 1 ? 's' : ''}.<br>${s.parts > 1 ? `There are <b style="color:var(--ink)">${s.parts} questions</b> about it. For the first one you'll have` : "Then you'll have"} <b style="color:var(--ink)">${lim / 1000} seconds</b> to answer. Fastest correct answer wins ⚡</p></div></div>`;
       return;
     }
     const left = () => fs.read + rm - Store.now();
@@ -2306,7 +2357,7 @@ function viewAudience(rawCode) {
   function votedKey(s, reset) { return `mm_v_${code}_${s.id}_${reset}`; }
   function head(s) {
     return `<div class="progress">${p.slides.map((_, i) => `<i class="${i === (p.current || 0) ? 'on' : ''}"></i>`).join('')}</div>
-      <span class="q-chip">${ticon(s.type)} ${TYPES[s.type].name}</span><h2 class="q-title">${esc(s.question)}</h2>`;
+      <span class="q-chip">${ticon(s.type)} ${typeLabel(s)}</span><h2 class="q-title">${esc(s.question)}</h2>`;
   }
   function thanks(s, reset, again) {
     $('#am').innerHTML = `<div class="card aud-card"><div class="thanks"><div class="check"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
