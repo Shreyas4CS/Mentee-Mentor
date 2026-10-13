@@ -270,6 +270,14 @@ footer.foot{background:var(--navy);color:#C9CFEA;padding:70px 0 26px;border-top:
 .thumb .tools button:hover{background:var(--soft)}
 .add-slide{border:2.5px dashed #D8C8B4;border-radius:14px;padding:14px;font-weight:900;color:var(--muted);transition:all .2s}
 .add-slide:hover{border-color:var(--orange);color:var(--orange);background:#FFF3E8}
+.clip-row{display:flex;gap:8px}
+.clip-row .add-slide{flex:1;padding:10px 6px;font-size:13px;border-width:2px}
+.clip-row .add-slide:disabled{opacity:.45;cursor:not-allowed;border-color:#D8C8B4;color:var(--muted);background:none}
+.clip-list{max-height:50vh;overflow:auto;border:2px solid var(--line);border-radius:14px;padding:6px 12px;margin-bottom:14px}
+.clip-list .chk{margin:0;padding:9px 0;border-bottom:1.5px solid var(--line);font-weight:700}
+.clip-list .chk:last-child{border-bottom:none}
+.clip-list .chk input,.clip-list .chk .ticon{flex:none}.clip-list .chk .ticon{width:20px;height:20px}
+.clip-list .chk span.cl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ed-main{overflow:auto;padding:28px;display:flex;flex-direction:column;gap:12px;background:radial-gradient(#E9DCCB 1.2px,transparent 1.2px) 0 0/22px 22px,var(--bg)}
 .canvas-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .canvas{flex:1;min-height:440px;padding:34px;display:flex;flex-direction:column}
@@ -583,7 +591,7 @@ footer.foot{background:var(--navy);color:#C9CFEA;padding:70px 0 26px;border-top:
   .feat-grid{grid-template-columns:1fr 1fr}.foot-grid{grid-template-columns:1fr 1fr}
   .ed{grid-template-columns:1fr;grid-template-rows:auto auto auto auto;height:auto}
   .ed-side{flex-direction:row;overflow-x:auto;border-right:none;border-bottom:2px solid var(--line)}
-  .thumb{min-width:180px}.add-slide{min-width:130px}
+  .thumb{min-width:180px}.add-slide{min-width:130px}.clip-row{flex:none}
   .ed-panel{border-left:none;border-top:2px solid var(--line)}
 }
 @media (max-width:700px){
@@ -958,6 +966,26 @@ function newSlide(type) {
     case 'fff': return { ...s, question: 'Which sensor measures distance using sound waves?', mode: 'mc', options: ['LDR', 'Ultrasonic sensor', 'IR sensor', 'Thermistor'], correct: 1, answer: '', items: ['Sensors', 'collect', 'data', 'from', 'the', 'environment'], arrange: 'sentence', timeLimit: 20 };
   }
 }
+
+// ---- Slide clipboard: copy question slides in one presentation, paste them into another ----
+// Copied slides go to the system clipboard (works across tabs, browsers and devices) and to localStorage (fallback).
+const CLIP_KEY = 'mm_slide_clip', CLIP_TAG = 'mentee-mentor/slides';
+const freshIds = s => { const c = { ...clone(s), id: rid(8) }; if (Array.isArray(c.questions)) c.questions.forEach(q => q.id = rid(6)); return c; };
+function parseClip(text) {
+  try { const d = JSON.parse(text); if (d && d.kind === CLIP_TAG && Array.isArray(d.slides) && d.slides.length && d.slides.every(s => s && TYPES[s.type])) return d; } catch {}
+  return null;
+}
+const localClip = () => parseClip(LS.get(CLIP_KEY));
+function clipText(slides, from) { return JSON.stringify({ kind: CLIP_TAG, v: 1, from: from || '', at: Date.now(), slides: clone(slides) }); }
+async function copySlides(slides, from) {
+  const text = clipText(slides, from); LS.set(CLIP_KEY, text);
+  try { await navigator.clipboard.writeText(text); } catch {}
+}
+async function readClip() {
+  const loc = localClip(); if (loc) return loc;
+  try { return parseClip(await navigator.clipboard.readText()); } catch { return null; }
+}
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
 
 /* =====================================================================
    5. DATA LAYER  — LocalStore (demo) and FirebaseStore (production)
@@ -1706,6 +1734,44 @@ function viewEditor(code) {
   addEventListener('beforeunload', onBefore); cleanups.push(() => removeEventListener('beforeunload', onBefore));
   const onKey = e => { if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); save(); } };
   addEventListener('keydown', onKey); cleanups.push(() => removeEventListener('keydown', onKey));
+  // Ctrl/Cmd+C copies the selected slide and Ctrl/Cmd+V pastes slides, unless you're typing in a field or have text selected
+  const typing = e => !ed || $('#modal-root').firstElementChild || e.target.closest?.('input,textarea,select,[contenteditable]') || String(getSelection() || '').trim();
+  const onCopy = e => {
+    if (typing(e)) return; const s = ed.p.slides[ed.sel]; if (!s) return;
+    e.preventDefault(); const text = clipText([s], ed.p.title); e.clipboardData.setData('text/plain', text); LS.set(CLIP_KEY, text);
+    toast(`Slide ${ed.sel + 1} copied 📋 — open another presentation and press Ctrl+V`, 'ok'); paintSide();
+  };
+  const onPaste = e => {
+    if (typing(e)) return; e.preventDefault();
+    const d = parseClip(e.clipboardData.getData('text/plain')) || localClip();
+    d ? pasteSlides(d) : toast('Nothing to paste — copy some slides first', 'err');
+  };
+  const onStore = e => { if (e.key === CLIP_KEY && ed && $('#side')) paintSide(); };
+  document.addEventListener('copy', onCopy); document.addEventListener('paste', onPaste); addEventListener('storage', onStore);
+  cleanups.push(() => { document.removeEventListener('copy', onCopy); document.removeEventListener('paste', onPaste); removeEventListener('storage', onStore); });
+
+  function pasteSlides(d) {
+    const add = d.slides.map(freshIds), at = ed.sel + 1;
+    ed.p.slides.splice(at, 0, ...add); ed.sel = at; dirty(); paintSide(); paintCanvas(); paintPanel();
+    toast(`Pasted ${plural(add.length, 'slide')}${d.from && d.from !== ed.p.title ? ` from “${d.from}”` : ''} — remember to save 💾`, 'ok');
+  }
+  function copyPicker() {
+    const S = ed.p.slides;
+    const m = modal(`<h3>📋 Copy slides</h3><p class="sub">Pick the slides to copy, then open any other presentation and press <b>📥 Paste</b> (or Ctrl+V). They're added after the selected slide.</p>
+      <label class="chk"><input type="checkbox" id="clAll"> Select all</label>
+      <div class="clip-list">${S.map((s, i) => `<label class="chk"><input type="checkbox" data-c="${i}" ${i === ed.sel ? 'checked' : ''}><b style="width:20px;color:var(--muted)">${i + 1}</b>${ticon(s.type)}<span class="cl">${esc(slideLabel(s))}</span></label>`).join('')}</div>
+      <div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>Cancel</button><button class="btn primary" data-ok>Copy</button></div>`);
+    const boxes = $$('[data-c]', m.el), all = $('#clAll', m.el), ok = $('[data-ok]', m.el);
+    const sync = () => { const n = boxes.filter(b => b.checked).length; all.checked = n === boxes.length; ok.textContent = n ? `Copy ${plural(n, 'slide')}` : 'Copy'; ok.disabled = !n; };
+    all.onchange = () => { boxes.forEach(b => b.checked = all.checked); sync(); };
+    boxes.forEach(b => b.onchange = sync); sync();
+    $('[data-x]', m.el).onclick = m.close;
+    ok.onclick = async () => {
+      const pick = boxes.filter(b => b.checked).map(b => S[+b.dataset.c]); if (!pick.length) return;
+      await copySlides(pick, ed.p.title); m.close(); paintSide();
+      toast(`${plural(pick.length, 'slide')} copied 📋 — open another presentation and press Paste`, 'ok');
+    };
+  }
 
   function paint() {
     app.innerHTML = `<div class="ed">
@@ -1782,13 +1848,16 @@ function viewEditor(code) {
     const side = $('#side');
     side.innerHTML = (ed.p.askName ? `<div class="thumb name-thumb" title="Mentees type their name before the welcome slide"><span class="num">✍️</span><div class="tc"><div class="tt">Name entry</div><small>Ask names is on</small></div></div>` : '') + `<div class="thumb wel-thumb" title="Shown automatically at the start of every session"><span class="num">👋</span><div class="tc"><div class="tt">Welcome · ${esc(ed.p.title || 'Session')}</div><small>Added automatically</small></div></div>` + ed.p.slides.map((s, i) => `<div class="thumb ${i === ed.sel ? 'sel' : ''}" data-i="${i}" draggable="true" title="Drag to reorder" style="animation-delay:${i * 30}ms">
       <span class="grip">⋮⋮</span><span class="num">${i + 1}</span><div class="tc">${ticon(s.type)}<div class="tt">${esc(slideLabel(s))}</div></div>
-      <div class="tools"><button data-a="up" title="Move up">↑</button><button data-a="down" title="Move down">↓</button><button data-a="dup" title="Duplicate">⧉</button><button data-a="del" title="Delete">✕</button></div></div>`).join('')
-      + `<button class="add-slide" id="addSlide">＋ Add slide</button>`;
+      <div class="tools"><button data-a="up" title="Move up">↑</button><button data-a="down" title="Move down">↓</button><button data-a="dup" title="Duplicate">⧉</button><button data-a="copy" title="Copy to paste into another presentation">📋</button><button data-a="del" title="Delete">✕</button></div></div>`).join('')
+      + `<button class="add-slide" id="addSlide">＋ Add slide</button>`
+      + (clip => `<div class="clip-row"><button class="add-slide" id="copySlides" title="Copy slides to paste into another presentation">📋 Copy</button>
+        <button class="add-slide" id="pasteSlides" title="${clip ? `Paste ${plural(clip.slides.length, 'copied slide')}${clip.from ? ` from “${esc(clip.from)}”` : ''} after the selected slide` : 'Paste slides copied from another presentation'}">📥 Paste${clip ? ` (${clip.slides.length})` : ''}</button></div>`)(localClip());
     $$('.thumb[data-i]', side).forEach(t => t.onclick = e => {
       const i = +t.dataset.i, a = e.target.closest('[data-a]')?.dataset.a, S = ed.p.slides;
       if (a === 'up' && i > 0) { [S[i - 1], S[i]] = [S[i], S[i - 1]]; ed.sel = i - 1; dirty(); }
       else if (a === 'down' && i < S.length - 1) { [S[i + 1], S[i]] = [S[i], S[i + 1]]; ed.sel = i + 1; dirty(); }
-      else if (a === 'dup') { const c = { ...clone(S[i]), id: rid(8) }; if (Array.isArray(c.questions)) c.questions.forEach(q => q.id = rid(6)); S.splice(i + 1, 0, c); ed.sel = i + 1; dirty(); }
+      else if (a === 'dup') { S.splice(i + 1, 0, freshIds(S[i])); ed.sel = i + 1; dirty(); }
+      else if (a === 'copy') { copySlides([S[i]], ed.p.title); toast(`Slide ${i + 1} copied 📋 — open another presentation and press Paste`, 'ok'); }
       else if (a === 'del') { if (S.length === 1) return toast('A presentation needs at least one slide', 'err'); S.splice(i, 1); ed.sel = Math.min(ed.sel, S.length - 1); dirty(); }
       else ed.sel = i;
       paintSide(); paintCanvas(); paintPanel();
@@ -1814,6 +1883,8 @@ function viewEditor(code) {
         paintSide(); paintCanvas(); paintPanel(); toast(`Moved to position ${to + 1}`);
       };
     });
+    $('#copySlides').onclick = copyPicker;
+    $('#pasteSlides').onclick = async () => { const d = await readClip(); d ? pasteSlides(d) : toast('Nothing to paste — copy slides in another presentation first', 'err'); };
     $('#addSlide').onclick = () => pickType(t => { ed.p.slides.splice(ed.sel + 1, 0, newSlide(t)); ed.sel++; dirty(); paintSide(); paintCanvas(); paintPanel(); });
   }
   function refreshThumb() { const t = $(`.thumb[data-i="${ed.sel}"] .tt`); if (t) t.textContent = slideLabel(ed.p.slides[ed.sel]); }
