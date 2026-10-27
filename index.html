@@ -642,6 +642,12 @@ footer.foot{background:var(--navy);color:#C9CFEA;padding:70px 0 26px;border-top:
 .switch input:checked+.sw::after{transform:translateX(20px)}
 .switch input:focus-visible+.sw{box-shadow:0 0 0 4px rgba(255,122,26,.25)}
 .switch small{display:block;font-size:12px;font-weight:700;color:var(--muted)}
+.switch.star input:checked+.sw{background:var(--yellow)}
+.org-chip{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:6px 16px;border-radius:99px;background:var(--yellow);border:2px solid var(--navy);box-shadow:var(--sh-sm);font-family:Fredoka;font-weight:600;font-size:clamp(16px,1.8vw,22px);max-width:100%;word-break:break-word}
+.wel-card .org-chip{font-size:15px}
+.ses-list{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow:auto;margin:6px 0 16px}
+.ses-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:2px solid #E6D2B8;border-radius:14px;background:#FFFBF6}
+.ses-row .sn{flex:1;min-width:0}.ses-row .sn b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ses-row .sn small{color:var(--muted);font-weight:700}
 .set-box{padding:14px 16px;border:2px dashed #E6D2B8;border-radius:16px;background:#FFFBF6;margin-bottom:18px}
 .ed-top .switch{padding:6px 12px;border:2px solid var(--line);border-radius:12px;background:#fff;font-size:13px}
 .thumb.name-thumb{cursor:default;background:linear-gradient(135deg,#E9FBF4,#FFF6E0);border-style:dashed;animation:rise .4s var(--spring) both}
@@ -949,7 +955,7 @@ const EDIT_TYPES = () => [...TYPE_ORDER, 'text', 'blank'];   // text and blank s
 const isInfo = s => !!s && (s.type === 'blank' || s.type === 'text');   // slides that only show something, no answers
 const TEXT_MAX = 2000;
 const textBodyHTML = s => { const t = String(s.text || ''); return `<div class="tx-body ${t.length > 600 ? 'long' : ''}">${t.split(/\n\s*\n/).map(x => x.trim()).filter(Boolean).map(x => `<p>${esc(x).replace(/\n/g, '<br>')}</p>`).join('') || '<p class="muted">No text yet.</p>'}</div>`; };
-const textSlideHTML = (s, title) => `<div class="tx-slide">${welcomeHTML(title)}<div class="tx-card">${String(s.question || '').trim() ? `<h1>${esc(s.question)}</h1>` : ''}${textBodyHTML(s)}</div></div>`;
+const textSlideHTML = (s, title, org) => `<div class="tx-slide">${welcomeHTML(title, { org })}<div class="tx-card">${String(s.question || '').trim() ? `<h1>${esc(s.question)}</h1>` : ''}${textBodyHTML(s)}</div></div>`;
 // One question inside a Scenario (same settings as Fastest Fingers First)
 function newScenarioQ(o = {}) { return { id: rid(6), question: 'Type your question…', mode: 'mc', options: ['Option A', 'Option B', 'Option C', 'Option D'], correct: -1, answer: '', items: ['Sense', 'Decide', 'Act'], arrange: 'steps', timeLimit: 20, ...o }; }
 const SC_QFIELDS = ['question', 'mode', 'options', 'correct', 'answer', 'items', 'arrange', 'timeLimit'];
@@ -1317,7 +1323,13 @@ async function viewDashboard() {
   $('#logout').onclick = () => { SS.del('mm_auth'); go(''); };
   $('#newPres').onclick = createPresentation;
   let list;
-  try { list = await Store.list(); }
+  let sessions = {};
+  try {
+    const all = await Store.list();
+    // Per-school sessions are copies made at Present time; they live under their main presentation's card
+    list = all.filter(p => !p.parent);
+    all.filter(p => p.parent).forEach(p => (sessions[p.parent] = sessions[p.parent] || []).push(p));
+  }
   catch (e) { console.error(e); const el = $('#plist'); if (el) el.innerHTML = `<div class="card" style="padding:24px;border-color:var(--pink)"><h3 style="margin-bottom:8px">⚠️ Can't reach the database</h3><p style="font-weight:700">${esc(e.message)}</p></div>`; return; }
   const el = $('#plist'); if (!el) return;
   el.innerHTML = `<div class="pres-grid">
@@ -1328,11 +1340,12 @@ async function viewDashboard() {
       return `<div class="pcard card" style="animation-delay:${i * 50}ms">
         <div class="cover" style="background:linear-gradient(135deg,${c1},${c2})">${types.map(t => `<span class="ticon" style="color:#fff">${ICONS[t]}</span>`).join('')}
           <span class="code" data-copy="${p.code}" title="Copy Presenter ID">${fmtCode(p.code)}</span></div>
-        <div class="body"><h3>${esc(p.title)}</h3><div class="meta">${n} slide${n === 1 ? '' : 's'} · updated ${new Date(p.updatedAt || Date.now()).toLocaleDateString()}${p.askName ? ' · 👤 names on' : ''}${p.live ? ' · <span style="color:var(--pink)">● live</span>' : ''}</div>
-        <div class="acts"><button class="btn sm primary" data-present="${p.code}">▶ Present</button><button class="btn sm" data-edit="${p.code}">✎ Edit</button><button class="btn sm" data-resetall="${p.code}" title="Reset all responses">↺ Reset</button><button class="btn sm ghost" data-del="${p.code}" title="Delete">🗑</button></div></div></div>`;
+        <div class="body"><h3>${esc(p.title)}</h3><div class="meta">${n} slide${n === 1 ? '' : 's'} · updated ${new Date(p.updatedAt || Date.now()).toLocaleDateString()}${p.askName ? ' · 👤 names on' : ''}${p.multiSession ? ' · ⭐ per-school' : ''}${p.live ? ' · <span style="color:var(--pink)">● live</span>' : ''}</div>
+        <div class="acts"><button class="btn sm primary" data-present="${p.code}">▶ Present</button><button class="btn sm" data-edit="${p.code}">✎ Edit</button>${(sessions[p.code] || []).length ? `<button class="btn sm" data-ses="${p.code}" title="School sessions">⭐ ${sessions[p.code].length}</button>` : ''}<button class="btn sm" data-resetall="${p.code}" title="Reset all responses">↺ Reset</button><button class="btn sm ghost" data-del="${p.code}" title="Delete">🗑</button></div></div></div>`;
     }).join('')}</div>${list.length ? '' : '<div class="empty-dash">No presentations yet — create your first one! ✨</div>'}`;
   $('#newCard').onclick = createPresentation;
-  $$('[data-present]').forEach(b => b.onclick = () => go('present/' + b.dataset.present));
+  $$('[data-present]').forEach(b => b.onclick = () => startPresent(b.dataset.present));
+  $$('[data-ses]').forEach(b => b.onclick = () => sessionsBox(list.find(x => x.code === b.dataset.ses), sessions[b.dataset.ses] || []));
   $$('[data-edit]').forEach(b => b.onclick = () => go('edit/' + b.dataset.edit));
   $$('[data-copy]').forEach(b => b.onclick = () => { navigator.clipboard?.writeText(b.dataset.copy); toast('Presenter ID copied: ' + fmtCode(b.dataset.copy)); });
   $$('[data-resetall]').forEach(b => b.onclick = async () => {
@@ -1349,13 +1362,59 @@ async function viewDashboard() {
     b.disabled = false;
   });
   $$('[data-del]').forEach(b => b.onclick = async () => {
-    if (await confirmBox('Delete presentation?', 'This removes all slides and every response. This cannot be undone.', 'Delete')) { await Store.remove(b.dataset.del); toast('Deleted'); viewDashboard(); }
+    const ses = sessions[b.dataset.del] || [];
+    if (await confirmBox('Delete presentation?', `This removes all slides and every response${ses.length ? `, including ${plural(ses.length, 'school session')}` : ''}. This cannot be undone.`, 'Delete')) { await Store.remove(b.dataset.del); for (const x of ses) await Store.remove(x.code).catch(() => {}); toast('Deleted'); viewDashboard(); }
   });
+}
+// ⭐ Per-school sessions: when the presentation has multiSession on, Present asks for the school / organisation
+// and starts a copy with its own Presenter ID + QR, so several presenters can run it at the same time.
+async function startPresent(code) {
+  let p;
+  try { p = await Store.get(code); } catch (e) { return showError('Could not open the presentation', e); }
+  if (!p) return toast('Presentation not found', 'err');
+  if (!p.multiSession) return go('present/' + code);
+  const recent = LS.getJSON('mm_orgs', []);
+  const m = modal(`<h3>⭐ Which school / organisation?</h3><p class="sub">“${esc(p.title)}” gets a fresh Presenter ID and QR for this session, so it won't clash with anyone else presenting it right now.</p>
+    <div class="field"><label>School / organisation name</label><input class="input" id="orgName" maxlength="80" placeholder="e.g. Greenwood High School" list="orgList" autocomplete="off">
+      <datalist id="orgList">${recent.map(o => `<option value="${esc(o)}">`).join('')}</datalist></div>
+    <div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>Cancel</button><button class="btn primary" id="orgGo">Start session →</button></div>`);
+  const t = $('#orgName', m.el); t.focus();
+  $('[data-x]', m.el).onclick = m.close;
+  const go2 = async () => {
+    const org = t.value.trim(); if (!org) { t.classList.remove('shake'); void t.offsetWidth; t.classList.add('shake'); return; }
+    $('#orgGo', m.el).disabled = true;
+    try {
+      const sc = await newCode();
+      await Store.save({ code: sc, parent: code, org, title: p.title, askName: !!p.askName, slides: p.slides, joinEpoch: 0, current: 0, live: false, hideResults: false, locked: false, reveal: false, resets: {}, createdAt: Date.now() });
+      LS.setJSON('mm_orgs', [org, ...recent.filter(o => o.toLowerCase() !== org.toLowerCase())].slice(0, 12));
+      m.close(); toast(`🏫 ${org} · new Presenter ID ${fmtCode(sc)}`, 'ok'); go('present/' + sc);
+    } catch (e) { console.error(e); showError('Could not start the session', e); $('#orgGo', m.el).disabled = false; }
+  };
+  $('#orgGo', m.el).onclick = go2; t.onkeydown = e => { if (e.key === 'Enter') go2(); };
+}
+function sessionsBox(p, list) {
+  if (!p) return;
+  const m = modal(`<h3>⭐ School sessions</h3><p class="sub">Every time “${esc(p.title)}” was presented, with its own Presenter ID. Resume one to see its results again.</p>
+    <div class="ses-list" id="sesList"></div>
+    <div class="row" style="justify-content:flex-end"><button class="btn primary" data-x>Close</button></div>`, { wide: true });
+  $('[data-x]', m.el).onclick = m.close;
+  const paint = () => {
+    list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    $('#sesList', m.el).innerHTML = list.length ? list.map(s => `<div class="ses-row"><span style="font-size:22px">🏫</span><div class="sn"><b>${esc(s.org || 'Session')}</b><small>ID ${fmtCode(s.code)} · ${new Date(s.createdAt || s.updatedAt || Date.now()).toLocaleString()}${s.live ? ' · <span style="color:var(--pink)">● live</span>' : ''}</small></div>
+      <button class="btn sm primary" data-open="${s.code}">▶ Resume</button><button class="btn sm ghost" data-rm="${s.code}" title="Delete this session">🗑</button></div>`).join('') : '<p class="muted" style="font-weight:700">No sessions left.</p>';
+    $$('[data-open]', m.el).forEach(b => b.onclick = () => { m.close(); go('present/' + b.dataset.open); });
+    $$('[data-rm]', m.el).forEach(b => b.onclick = async () => {
+      const s = list.find(x => x.code === b.dataset.rm); b.disabled = true;
+      try { await Store.remove(s.code); list.splice(list.indexOf(s), 1); toast('Session deleted'); paint(); viewDashboard(); } catch (e) { showError('Could not delete', e); b.disabled = false; }
+    });
+  };
+  paint();
 }
 function createPresentation() {
   const m = modal(`<h3>New presentation</h3><p class="sub">Give it a title — you'll get a unique Presenter ID for mentees to join.</p>
     <div class="field"><label>Title</label><input class="input" id="npTitle" maxlength="80" placeholder="e.g. Grade 8 · Intro to IoT"></div>
-    <div class="set-box"><label class="switch"><input type="checkbox" id="npAsk"><span class="sw"></span><span>Ask mentees for their name<small>They type their name first, then see the welcome slide. You can change this later in the editor.</small></span></label></div>
+    <div class="set-box"><label class="switch"><input type="checkbox" id="npAsk"><span class="sw"></span><span>Ask mentees for their name<small>They type their name first, then see the welcome slide. You can change this later in the editor.</small></span></label>
+      <label class="switch star" style="margin-top:12px"><input type="checkbox" id="npMulti"><span class="sw"></span><span>⭐ Separate session per school<small>Each time you press Present, you'll be asked for the school / organisation name and get a fresh Presenter ID and QR, so many presenters can run this at once.</small></span></label></div>
     <div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>Cancel</button><button class="btn primary" id="npGo">Create →</button></div>`);
   const t = $('#npTitle', m.el); t.focus();
   $('[data-x]', m.el).onclick = m.close;
@@ -1364,7 +1423,7 @@ function createPresentation() {
     $('#npGo', m.el).disabled = true;
     try {
       const code = await newCode();
-      await Store.save({ code, title, askName: $('#npAsk', m.el).checked, joinEpoch: 0, slides: [newSlide('mc')], current: 0, live: false, hideResults: false, locked: false, reveal: false, resets: {}, createdAt: Date.now() });
+      await Store.save({ code, title, askName: $('#npAsk', m.el).checked, multiSession: $('#npMulti', m.el).checked, joinEpoch: 0, slides: [newSlide('mc')], current: 0, live: false, hideResults: false, locked: false, reveal: false, resets: {}, createdAt: Date.now() });
       m.close(); toast('Created! Presenter ID ' + fmtCode(code), 'ok'); go('edit/' + code);
     } catch (e) { console.error(e); showError('Could not create the session', e); $('#npGo', m.el).disabled = false; }
   };
@@ -1805,6 +1864,7 @@ function viewEditor(code) {
         <span class="save-state" id="ss"><i></i><span>Saved</span></span>
         <div style="flex:1"></div>
         <label class="switch" title="When on, mentees type their name before the welcome slide"><input type="checkbox" id="askName" ${ed.p.askName ? 'checked' : ''}><span class="sw"></span>👤 Ask names</label>
+        <label class="switch star" title="When on, pressing Present asks for the school / organisation name and starts a separate session with its own Presenter ID and QR"><input type="checkbox" id="multiSes" ${ed.p.multiSession ? 'checked' : ''}><span class="sw"></span>⭐ Per-school sessions</label>
         <button class="btn sm" id="save">💾 Save</button>
         <button class="btn sm primary" id="present">▶ Present</button>
       </header>
@@ -1816,8 +1876,9 @@ function viewEditor(code) {
     $('#back').onclick = async () => { if (ed.dirty && !(await confirmBox('Leave without saving?', 'You have unsaved changes.', 'Leave'))) return; ed.dirty = false; go('presenter'); };
     $('#title').oninput = e => { ed.p.title = e.target.value; dirty(); };
     $('#askName').onchange = e => { ed.p.askName = e.target.checked; dirty(); paintSide(); toast(e.target.checked ? 'Mentees will be asked for their name 👤' : 'Name collection turned off — mentees stay anonymous 🕶️'); };
+    $('#multiSes').onchange = e => { ed.p.multiSession = e.target.checked; dirty(); toast(e.target.checked ? '⭐ Per-school sessions on — Present will ask for the school name and make a new ID & QR' : 'Per-school sessions off — everyone uses this one Presenter ID'); };
     $('#save').onclick = save;
-    $('#present').onclick = async () => { if (await save()) go('present/' + ed.p.code); };
+    $('#present').onclick = async () => { if (await save()) startPresent(ed.p.code); };
     $('#sample').onchange = e => { sample = e.target.checked; paintCanvas(); };
     paintSide(); paintCanvas(); paintPanel();
   }
@@ -1862,7 +1923,7 @@ function viewEditor(code) {
     try {
       const cur = await Store.get(ed.p.code) || {};
       const current = clamp(cur.current || 0, 0, expandSlides(ed.p.slides).length - 1);
-      await Store.save({ code: ed.p.code, title: ed.p.title.trim(), askName: !!ed.p.askName, slides: ed.p.slides, current });
+      await Store.save({ code: ed.p.code, title: ed.p.title.trim(), askName: !!ed.p.askName, multiSession: !!ed.p.multiSession, slides: ed.p.slides, current });
       ed.dirty = false; const s = $('#ss'); if (s) { s.classList.remove('dirty'); s.lastElementChild.textContent = 'Saved'; }
       toast('Presentation saved ✓', 'ok'); paintPanel(); return true;
     } catch (e) { console.error(e); showError('Save failed', e); return false; }
@@ -2044,12 +2105,12 @@ function compressImage(file, maxW = 1000, q = .78) {
 }
 
 /* Welcome slide — always shown first when a session starts */
-function welcomeHTML(title, { compact = false } = {}) {
+function welcomeHTML(title, { compact = false, org = '' } = {}) {
   return `<a href="${esc(CONFIG.SITE)}" target="_blank" rel="noopener" title="Visit cognospace.in"><img class="wel-logo" src="${esc(CONFIG.LOGO_URL || LOGO_FULL)}" alt="CognoSpace — Experiential Learning"></a>
     <div class="wel-hi">Welcome to</div>
     <div class="wel-app">${esc(CONFIG.APP)}</div>
     <div class="wel-by">by ${esc(CONFIG.ORG)} · Experiential Learning</div>
-    <div class="wel-title"><small>Today's session</small>${esc(title || 'Untitled session')}</div>`;
+    <div class="wel-title"><small>Today's session</small>${esc(title || 'Untitled session')}</div>${org ? `<div><span class="org-chip">🏫 ${esc(org)}</span></div>` : ''}`;
 }
 
 /* =====================================================================
@@ -2138,7 +2199,7 @@ function viewPresent(code) {
   function shell() {
     app.innerHTML = `<div class="pv">
       <div class="pv-top">${brandHTML(false, 'Mentee-Mentor')}
-        <div class="join-banner"><span>Join at <b>${esc(host)}</b> → User Mode<br><span class="muted" style="font-size:13px">and enter the Presenter ID</span></span><span class="codebig" title="Click to enlarge">${fmtCode(code)}</span><div class="qr" id="qr" title="Click to enlarge"></div></div>
+        <div class="join-banner"><span>${p && p.org ? `<b>🏫 ${esc(p.org)}</b><br>` : ''}Join at <b>${esc(host)}</b> → User Mode<br><span class="muted" style="font-size:13px">and enter the Presenter ID</span></span><span class="codebig" title="Click to enlarge">${fmtCode(code)}</span><div class="qr" id="qr" title="Click to enlarge"></div></div>
         <div class="pv-count"><span class="dot-live"></span><b id="cnt">0</b> responses</div></div>
       <div class="pv-stage" id="stage"></div>
       <div class="pv-bar" id="bar"></div></div>`;
@@ -2162,7 +2223,7 @@ function viewPresent(code) {
     $('#stage').innerHTML = `<div class="stage-anim"><div class="wel">
       <span class="wel-emo" style="left:4%;top:10%">🚀</span><span class="wel-emo" style="right:6%;top:18%;animation-delay:-2s">💡</span>
       <span class="wel-emo" style="left:9%;bottom:12%;animation-delay:-4s">🤖</span><span class="wel-emo" style="right:10%;bottom:16%;animation-delay:-1s">🎉</span>
-      ${welcomeHTML(p.title)}
+      ${welcomeHTML(p.title, { org: p.org })}
       <div class="wel-join">${window.QRCode ? '<div class="wel-qr" id="welQr" title="Click to enlarge"></div>' : ''}
         <div class="txt">Join at <b>${esc(host)}</b><br><span class="muted">→ User Mode → enter the Presenter ID</span></div>
         <span class="codebig" id="welCode" title="Click to enlarge">${fmtCode(code)}</span></div>
@@ -2226,11 +2287,11 @@ function viewPresent(code) {
   function paintSlide() {
     const s = p.slides[p.current || 0];
     if (s.type === 'text') {
-      $('#stage').innerHTML = `<div class="stage-anim"><span class="q-chip">${ticon(s.type)} ${typeLabel(s)}</span><div class="tx-wrap">${textSlideHTML(s, p.title)}</div></div>`;
+      $('#stage').innerHTML = `<div class="stage-anim"><span class="q-chip">${ticon(s.type)} ${typeLabel(s)}</span><div class="tx-wrap">${textSlideHTML(s, p.title, p.org)}</div></div>`;
       const c = $('#cnt'); if (c) c.textContent = 0; return;
     }
     if (s.type === 'blank') {
-      $('#stage').innerHTML = `<div class="stage-anim"><div class="wel">${welcomeHTML(p.title)}
+      $('#stage').innerHTML = `<div class="stage-anim"><div class="wel">${welcomeHTML(p.title, { org: p.org })}
         <div class="wel-wait">⏳ ${esc(s.message || 'Wait for the next question')} <span class="dots"><i></i><i></i><i></i></span></div></div></div>`;
       const c = $('#cnt'); if (c) c.textContent = 0; return;
     }
@@ -2368,10 +2429,10 @@ function viewAudience(rawCode) {
     if (p) register();
     if (!p) { shownKey = 'nf'; am.innerHTML = `<div class="card aud-card waiting"><div style="font-size:54px">🔍</div><h2 style="margin:10px 0">Session not found</h2><p class="muted" style="font-weight:700;margin-bottom:18px">Check the Presenter ID and try again.</p><button class="btn mint" onclick="go('join')">Try another code</button></div>`; return; }
     if (!p.live) { if (shownKey !== 'wait') { shownKey = 'wait'; stopTick(); unsubQA && unsubQA(); unsubQA = null;
-      am.innerHTML = `<div class="card aud-card waiting"><div class="orb"></div><h2 style="font-size:28px">${esc(p.title)}</h2><p class="muted" style="font-weight:700;margin-top:8px">Waiting for the presenter to start <span class="dots"><i></i><i></i><i></i></span></p>${youAre()}</div>`; bindYou(); } return; }
+      am.innerHTML = `<div class="card aud-card waiting"><div class="orb"></div><h2 style="font-size:28px">${esc(p.title)}</h2>${p.org ? `<span class="org-chip">🏫 ${esc(p.org)}</span>` : ''}<p class="muted" style="font-weight:700;margin-top:8px">Waiting for the presenter to start <span class="dots"><i></i><i></i><i></i></span></p>${youAre()}</div>`; bindYou(); } return; }
     if (p.final) { if (shownKey !== 'final') { shownKey = 'final'; stopTick(); unsubQA && unsubQA(); unsubQA = null; finalView(); } return; }
     if (p.intro) { const k = 'intro:' + p.title + ':' + myName(); if (shownKey !== k) { shownKey = k; stopTick(); unsubQA && unsubQA(); unsubQA = null;
-      am.innerHTML = `<div class="card aud-card wel-card">${welcomeHTML(p.title)}
+      am.innerHTML = `<div class="card aud-card wel-card">${welcomeHTML(p.title, { org: p.org })}
         <p class="muted" style="font-weight:800;margin-top:24px">You're in! 🎉 The first question will appear here when the presenter moves on <span class="dots"><i></i><i></i><i></i></span></p>
         ${youAre()}</div>`; bindYou(); } return; }
     const s = p.slides[p.current || 0]; if (!s) return;
@@ -2571,8 +2632,8 @@ function viewAudience(rawCode) {
   function paint(s, reset) {
     if (s.type === 'qa') return qa(s);
     if (isFF(s)) return fff(s, reset);
-    if (s.type === 'text') { $('#am').innerHTML = `<div class="card aud-card"><span class="q-chip">${ticon(s.type)} ${TYPES.text.name}</span>${textSlideHTML(s, p.title)}${youAre()}</div>`; bindYou(); return; }
-    if (s.type === 'blank') { $('#am').innerHTML = `<div class="card aud-card wel-card">${welcomeHTML(p.title)}
+    if (s.type === 'text') { $('#am').innerHTML = `<div class="card aud-card"><span class="q-chip">${ticon(s.type)} ${TYPES.text.name}</span>${textSlideHTML(s, p.title, p.org)}${youAre()}</div>`; bindYou(); return; }
+    if (s.type === 'blank') { $('#am').innerHTML = `<div class="card aud-card wel-card">${welcomeHTML(p.title, { org: p.org })}
       <div class="wel-wait">⏳ ${esc(s.message || 'Wait for the next question')} <span class="dots"><i></i><i></i><i></i></span></div></div>`; return; }
     if (p.locked) { $('#am').innerHTML = `<div class="card aud-card">${head(s)}<div class="locked-note">🔒 Voting is closed for this question.</div><p class="muted" style="font-weight:700">Wait for the presenter to open the next one.</p></div>`; return; }
     if (LS.get(votedKey(s, reset))) return thanks(s, reset, s.type === 'open' && s.multi);
