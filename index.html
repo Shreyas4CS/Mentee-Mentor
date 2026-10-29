@@ -783,6 +783,38 @@ footer.foot{background:var(--navy);color:#C9CFEA;padding:70px 0 26px;border-top:
 .q-title.swap{animation:titleSwap .6s var(--spring)}
 @keyframes titleSwap{0%{opacity:0;transform:translateY(-14px) scale(.97);filter:blur(6px)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* ---------- Image Question: picture grid + zoom viewer ---------- */
+.ig-grid{display:grid;gap:10px;margin:0 auto 18px;max-width:900px;grid-template-columns:repeat(var(--c,1),1fr)}
+.ig-grid.n1{--c:1}.ig-grid.n2{--c:2}.ig-grid.n3{--c:3}.ig-grid.n4{--c:2}.ig-grid.n5,.ig-grid.n6{--c:3}
+.ig-cell{position:relative;padding:0;border:3px solid var(--navy);border-radius:16px;overflow:hidden;background:#fff;cursor:zoom-in;box-shadow:var(--sh-sm);display:block;width:100%}
+.ig-cell img{display:block;width:100%;height:100%;max-height:var(--h,34vh);object-fit:contain;background:#fff}
+.ig-grid:not(.n1) .ig-cell img{height:var(--hh,22vh);object-fit:cover}
+.ig-cell .ig-n{position:absolute;top:6px;left:6px;background:var(--yellow);border:2px solid var(--navy);border-radius:99px;font-weight:900;font-size:13px;min-width:26px;height:26px;display:grid;place-items:center;padding:0 6px}
+.ig-cell .ig-z{position:absolute;right:6px;bottom:6px;background:rgba(27,37,89,.82);color:#fff;border-radius:99px;font-weight:800;font-size:12px;padding:4px 10px}
+.ig-cell:hover{transform:translateY(-2px)}
+.aud-card .ig-grid{--h:38vh;--hh:16vh;gap:8px;margin-bottom:14px}
+.aud-card .ig-grid.n3,.aud-card .ig-grid.n5,.aud-card .ig-grid.n6{--c:2}
+.ig-empty{padding:30px;border:3px dashed #E6D2B8;border-radius:16px;text-align:center;font-weight:800;color:var(--muted);margin-bottom:16px}
+.ig-ed{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+.ig-ed div{position:relative;border:2px solid var(--line);border-radius:10px;overflow:hidden;aspect-ratio:1}
+.ig-ed img{width:100%;height:100%;object-fit:cover;display:block}
+.ig-ed b{position:absolute;top:4px;left:4px;background:var(--yellow);border-radius:99px;font-size:11px;padding:0 6px;border:1.5px solid var(--navy)}
+.ig-ed button{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:2px solid var(--navy);background:#fff;font-weight:900;cursor:pointer;line-height:1}
+.zv{position:fixed;inset:0;z-index:9999;background:rgba(10,14,40,.97);display:flex;flex-direction:column;touch-action:none;animation:rise .2s both}
+.zv-top{display:flex;align-items:center;gap:8px;padding:10px 12px;color:#fff;font-weight:800}
+.zv-top .sp{flex:1}
+.zv button{background:#fff;color:var(--navy);border:2px solid var(--navy);border-radius:12px;font-weight:900;font-size:18px;min-width:44px;height:44px;cursor:pointer;padding:0 10px}
+.zv-stage{flex:1;overflow:hidden;position:relative;cursor:grab}
+.zv-stage.drag{cursor:grabbing}
+.zv-stage img{position:absolute;left:50%;top:50%;max-width:96%;max-height:96%;transform-origin:center;user-select:none;-webkit-user-drag:none;background:#fff;border-radius:8px}
+.zv-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:2}
+.zv-nav.l{left:10px}.zv-nav.r{right:10px}
+.zv-hint{color:#C9D2FF;text-align:center;font-weight:700;font-size:13px;padding:8px}
+.ig-tally{display:flex;flex-direction:column;gap:8px;width:100%;max-width:820px;margin:0 auto}
+.ig-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 14px;border:2px solid var(--navy);border-radius:14px;background:#fff;position:relative;overflow:hidden;font-weight:800}
+.ig-row i{position:absolute;inset:0 auto 0 0;background:#E8EDFF;z-index:0;transition:width .6s var(--spring)}
+.ig-row.ok i{background:#CFF5E6}
+.ig-row span,.ig-row b{position:relative;z-index:1;word-break:break-word}
 </style>
 </head>
 <body>
@@ -932,6 +964,7 @@ const ICONS = {
   text: `<svg viewBox="0 0 24 24"><path d="M4 4h16v4h-2.5V6.5h-4v11H16V20H8v-2.5h2.5v-11h-4V8H4z"/></svg>`,
   scenario: `<svg viewBox="0 0 24 24"><path d="M2 5.5C4.6 4.3 8.2 4.3 11 6v14c-2.8-1.7-6.4-1.7-9-.5z"/><path d="M22 5.5C19.4 4.3 15.8 4.3 13 6v14c2.8-1.7 6.4-1.7 9-.5z" opacity=".7"/></svg>`,
   fff: `<svg viewBox="0 0 24 24"><path d="M13.5 1.5 4 13.5h6.5L9.5 22.5 20 9.5h-6.5z"/></svg>`,
+  imgq: `<svg viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm1 12.5V18h14v-3l-4-4-5 5-2-2zM8.5 7a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>`,
   pin: `<svg viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7zm0 4.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg>`
 };
 const TYPES = {
@@ -949,7 +982,8 @@ const TYPES = {
   blank:     { name: 'Blank slide',      color: '#FF7A1A', desc: 'CognoSpace logo, welcome and the session name with “Wait for the next question”.' },
   fff:       { name: 'Fastest Fingers First', color: '#E8590C', desc: 'A timed race — MCQ or short answer. See who answered first, by name.' },
   scenario:  { name: 'Scenario',         color: '#0CA678', desc: 'Show a paragraph for a set time, then hide it and race to answer a question about it.' },
-  pin:       { name: 'Pin on Image',     color: '#6C5CE7', desc: 'Drop a pin on a picture, map or circuit diagram.' }
+  pin:       { name: 'Pin on Image',     color: '#6C5CE7', desc: 'Drop a pin on a picture, map or circuit diagram.' },
+  imgq:      { name: 'Image Question',   color: '#D6336C', desc: 'Upload one or more pictures and ask about them — MCQ, short answer, arrange, open or buzzer. Optional Fastest Fingers First.' }
 };
 const EDIT_TYPES = () => [...TYPE_ORDER, 'text', 'blank'];   // text and blank slides can be added but aren't a "question type"
 const isInfo = s => !!s && (s.type === 'blank' || s.type === 'text');   // slides that only show something, no answers
@@ -965,9 +999,9 @@ const scQs = s => Array.isArray(s.questions) && s.questions.length ? s.questions
 const expandSlides = sl => (sl || []).flatMap(s => s.type !== 'scenario' || s.group ? [s]
   : scQs(s).map((q, i, a) => ({ ...q, id: i ? s.id + '-' + (q.id || i) : s.id, type: 'scenario', scenario: s.scenario, readTime: s.readTime, noRead: i > 0, part: i, parts: a.length, group: s.id })));
 const scRead = s => !!s && s.type === 'scenario' && !s.noRead;
-const typeLabel = s => TYPES[s.type].name + (s.type === 'scenario' && s.parts > 1 ? ` · Q${s.part + 1} of ${s.parts}` : '');
+const typeLabel = s => TYPES[s.type].name + (s.type === 'scenario' && s.parts > 1 ? ` · Q${s.part + 1} of ${s.parts}` : '') + (s.type === 'imgq' && s.fff ? ' · ⚡ Fastest Fingers' : '');
 const slideLabel = s => s.type === 'blank' ? (s.message || 'Blank slide') : s.type === 'text' ? ('📝 ' + (String(s.question || '').trim() || String(s.text || '').trim().split('\n')[0].slice(0, 60) || 'Text slide')) : s.type === 'scenario' && !s.group ? '📖 ' + ((scQs(s)[0] || {}).question || 'Scenario') + (scQs(s).length > 1 ? ` (+${scQs(s).length - 1} more)` : '') : (s.question || TYPES[s.type].name);
-const TYPE_ORDER = ['mc','fff','scenario','wordcloud','open','scales','ranking','qa','guess','points','grid','form','pin'];
+const TYPE_ORDER = ['mc','fff','scenario','imgq','wordcloud','open','scales','ranking','qa','guess','points','grid','form','pin'];
 const ticon = (t, size) => `<span class="ticon" style="color:${TYPES[t].color};${size ? `width:${size}px;height:${size}px` : ''}">${ICONS[t]}</span>`;
 
 const PIN_PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE3C7"/><stop offset="1" stop-color="#D7ECFF"/></linearGradient></defs><rect width="800" height="500" fill="url(#g)"/><circle cx="610" cy="130" r="58" fill="#FFB020"/><path d="M0 370 L170 220 L320 330 L470 190 L800 410 L800 500 L0 500Z" fill="#19C79A" opacity=".85"/><path d="M0 430 L250 330 L520 445 L800 360 L800 500 L0 500Z" fill="#3BA9FF" opacity=".8"/><g fill="#fff" opacity=".9"><circle cx="150" cy="110" r="22"/><circle cx="180" cy="100" r="28"/><circle cx="215" cy="112" r="20"/></g></svg>`);
@@ -986,6 +1020,7 @@ function newSlide(type) {
     case 'grid': return { ...s, question: 'Rate each project idea', items: ['Smart irrigation', 'Face-recognition gate', 'Gesture robot'], xLabel: 'Effort', yLabel: 'Impact', gmin: 0, gmax: 10 };
     case 'form': return { ...s, question: 'Quick workshop feedback', fields: [{ label: 'Your school', type: 'text', req: false }, { label: 'Favourite activity', type: 'text', req: true }, { label: 'Any suggestions?', type: 'textarea', req: false }] };
     case 'pin': return { ...s, question: 'Tap where you would like to explore first', image: PIN_PLACEHOLDER };
+    case 'imgq': return { ...s, question: 'Look at the picture. What is this component?', images: [], mode: 'mc', options: ['Option A', 'Option B', 'Option C', 'Option D'], correct: -1, answer: '', items: ['Sense', 'Decide', 'Act'], arrange: 'steps', timeLimit: 30, fff: false, fffTime: 20 };
     case 'blank': return { ...s, question: '', message: 'Wait for the next question' };
     case 'text': return { ...s, question: 'Before we begin', text: 'Work in teams of four.\n\nYou will have 10 minutes to build your circuit. Raise your hand if you need help!' };
     case 'scenario': return { ...s, readTime: 30, questions: [
@@ -1066,7 +1101,7 @@ const FirebaseStore = (() => {
   const isNumObj = x => x && typeof x === 'object' && !Array.isArray(x) && Object.keys(x).length && Object.keys(x).every(k => /^\d+$/.test(k));
   const normP = v => {
     if (!v) return null;
-    const fix = o => { ['options', 'items', 'statements', 'fields'].forEach(k => { if (k in o || isNumObj(o[k])) o[k] = toArr(o[k]); }); return o; };
+    const fix = o => { ['options', 'items', 'statements', 'fields', 'images'].forEach(k => { if (k in o || isNumObj(o[k])) o[k] = toArr(o[k]); }); return o; };
     v.slides = toArr(v.slides).map(sl => { fix(sl); if (sl.questions) sl.questions = toArr(sl.questions).map(fix); return sl; });
     v.resets = v.resets || {}; v.fffState = v.fffState || {}; return v;
   };
@@ -1575,7 +1610,7 @@ function renderResults(slide, res, st = {}) {
         <tbody>${list.map(r => `<tr class="pop" data-k="f:${r.id}">${slide.fields.map((f, i) => `<td>${esc((r.data.values || [])[i] || '—')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
       break;
     }
-    case 'fff': case 'scenario': return renderFFF(slide, res, st);
+    case 'fff': case 'scenario': case 'imgq': return renderFFF(slide, res, st);
     case 'blank': case 'text': return { key: slide.type + ':' + sid, html: '' };
     case 'pin': {
       html = `<div style="text-align:center"><div class="pin-wrap"><img src="${esc(slide.image)}" alt="">
@@ -1588,12 +1623,70 @@ function renderResults(slide, res, st = {}) {
 }
 
 /* ---------- Fastest Fingers First helpers ---------- */
-const isFF = s => !!s && (s.type === 'fff' || s.type === 'scenario');
+const isFF = s => !!s && (s.type === 'fff' || s.type === 'scenario' || s.type === 'imgq');
+// Image Question: timed like Fastest Fingers First, but only a speed race (ranking + points) when its ⚡ box is ticked
+const isRace = s => isFF(s) && (s.type !== 'imgq' || !!s.fff);
+const MAX_IMAGES = 6;
+const IMG_TIMES = [10, 15, 20, 30, 45, 60, 90, 120, 180, 300];
+function imgGridHTML(s) {
+  const im = (s.images || []).filter(Boolean);
+  if (!im.length) return '<div class="ig-empty">🖼️ No image yet — upload one in the slide settings</div>';
+  return `<div class="ig-grid n${im.length}" data-igrid>${im.map((src, i) => `<button type="button" class="ig-cell" data-zoom="${i}" title="Tap to enlarge">${im.length > 1 ? `<span class="ig-n">${i + 1}</span>` : ''}<img src="${esc(src)}" alt="Picture ${i + 1}" loading="lazy"><span class="ig-z">🔍 Zoom</span></button>`).join('')}</div>`;
+}
+// Full-screen viewer: pinch / wheel / buttons to zoom, drag to move, arrows to switch pictures
+function openZoom(srcs, idx = 0) {
+  document.querySelector('.zv')?.remove();
+  const el = document.createElement('div'); el.className = 'zv';
+  el.innerHTML = `<div class="zv-top"><span id="zvN"></span><span class="sp"></span><button data-z="out" title="Zoom out">−</button><button data-z="reset" title="Fit" style="font-size:14px">Fit</button><button data-z="in" title="Zoom in">＋</button><button data-z="x" title="Close">✕</button></div>
+    <div class="zv-stage">${srcs.length > 1 ? '<button class="zv-nav l" data-z="prev">‹</button><button class="zv-nav r" data-z="next">›</button>' : ''}<img alt=""></div>
+    <div class="zv-hint">Pinch or scroll to zoom · drag to move · double-tap to zoom in</div>`;
+  document.body.appendChild(el);
+  const img = $('img', el), stage = $('.zv-stage', el);
+  let k = 1, x = 0, y = 0;
+  const apply = () => { img.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${k})`; };
+  const zoom = (f, cx, cy) => { const r = stage.getBoundingClientRect(), nk = clamp(k * f, 1, 8);
+    const ox = (cx ?? r.left + r.width / 2) - (r.left + r.width / 2), oy = (cy ?? r.top + r.height / 2) - (r.top + r.height / 2);
+    x = ox - (ox - x) * nk / k; y = oy - (oy - y) * nk / k; k = nk; if (k === 1) x = y = 0; apply(); };
+  const show = i => { idx = (i + srcs.length) % srcs.length; img.src = srcs[idx]; k = 1; x = y = 0; apply(); $('#zvN', el).textContent = srcs.length > 1 ? `Picture ${idx + 1} of ${srcs.length}` : 'Picture'; };
+  const close = () => { el.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = e => { if (e.key === 'Escape') close(); else if (e.key === 'ArrowRight' && srcs.length > 1) show(idx + 1); else if (e.key === 'ArrowLeft' && srcs.length > 1) show(idx - 1); else if (e.key === '+' || e.key === '=') zoom(1.4); else if (e.key === '-') zoom(1 / 1.4); };
+  document.addEventListener('keydown', onKey);
+  el.addEventListener('click', e => { const b = e.target.closest('[data-z]'); if (!b) return; const z = b.dataset.z;
+    if (z === 'x') close(); else if (z === 'in') zoom(1.5); else if (z === 'out') zoom(1 / 1.5); else if (z === 'reset') { k = 1; x = y = 0; apply(); } else if (z === 'next') show(idx + 1); else if (z === 'prev') show(idx - 1); });
+  stage.addEventListener('wheel', e => { e.preventDefault(); zoom(e.deltaY < 0 ? 1.2 : 1 / 1.2, e.clientX, e.clientY); }, { passive: false });
+  const pts = new Map(); let last = null, pinch = 0, tap = 0;
+  stage.addEventListener('pointerdown', e => { if (e.target.closest('[data-z]')) return; stage.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); last = [e.clientX, e.clientY]; stage.classList.add('drag');
+    if (pts.size === 1) { const now = Date.now(); if (now - tap < 300) zoom(k > 1 ? 1 / k : 2.5, e.clientX, e.clientY); tap = now; } });
+  stage.addEventListener('pointermove', e => { if (!pts.has(e.pointerId)) return; pts.set(e.pointerId, [e.clientX, e.clientY]);
+    if (pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinch) zoom(d / pinch, (a[0] + b[0]) / 2, (a[1] + b[1]) / 2); pinch = d; return; }
+    if (k > 1 && last) { x += e.clientX - last[0]; y += e.clientY - last[1]; apply(); } last = [e.clientX, e.clientY]; });
+  const up = e => { pts.delete(e.pointerId); if (pts.size < 2) pinch = 0; last = pts.size ? [...pts.values()][0] : null; if (!pts.size) stage.classList.remove('drag'); };
+  stage.addEventListener('pointerup', up); stage.addEventListener('pointercancel', up);
+  show(idx);
+}
+// Any picture grid anywhere opens the viewer on tap
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-zoom]'); if (!b) return;
+  const g = b.closest('[data-igrid]'); if (!g) return;
+  e.preventDefault(); openZoom($$('[data-zoom] img', g).map(i => i.src), +b.dataset.zoom);
+});
+// Non-race Image Question results: how many gave each answer (correct one highlighted), no times or points
+function imgTallyHTML(s, ranked) {
+  if (!ranked.length) return emptyRes('🖼️', 'Nobody answered in time');
+  const ct = fffCorrectText(s), m = new Map();
+  if (s.mode === 'mc') s.options.forEach(o => m.set(o, 0));
+  ranked.forEach(r => { const a = fffAnswer(s, r.data); m.set(a, (m.get(a) || 0) + 1); });
+  const rows = [...m.entries()].sort((a, b) => s.mode === 'mc' ? 0 : b[1] - a[1]).slice(0, 30), max = Math.max(1, ...rows.map(r => r[1]));
+  const okText = a => s.mode === 'mc' ? a === ct : fffIsCorrect(s, s.mode === 'order' ? { order: (s.items || []).map((_, i) => i) } : { text: a }) === true && (s.mode !== 'order' || a === ct);
+  const nOk = ranked.filter(r => r.ok === true).length;
+  return `<div class="ff-sub" style="text-align:center;margin-bottom:10px"><b>${ranked.length}</b> answered${ct ? ` · <b>${nOk}</b> correct` : ''}</div>
+    <div class="ig-tally">${rows.map(([a, n]) => `<div class="ig-row ${ct && okText(a) ? 'ok' : ''}"><i style="width:${(n / max * 100).toFixed(1)}%"></i><span>${ct && okText(a) ? '✓ ' : ''}${esc(a)}</span><b>${n}</b></div>`).join('')}</div>`;
+}
 const readMs = s => Math.max(5, Number(s.readTime) || 30) * 1000;
 // Scenario paragraph → safe HTML paragraphs
 const scenarioHTML = s => String(s.scenario || '').split(/\n\s*\n/).map(t => t.trim()).filter(Boolean).map(t => `<p>${esc(t).replace(/\n/g, '<br>')}</p>`).join('') || '<p class="muted">No scenario text yet.</p>';
 const FFF_GRACE = 1500;   // ms of network grace after the timer ends
-const fffLimit = s => Math.max(3, Number(s.timeLimit) || 20) * 1000;
+const fffLimit = s => Math.max(3, Number(s.type === 'imgq' && s.fff ? s.fffTime : s.timeLimit) || 20) * 1000;
 /* Arcade-style buzzer: red dome on a black base with a glowing light ring (no text on it) */
 function buzzerSVG() {
   return `<svg viewBox="0 0 220 250" aria-hidden="true">
@@ -1669,7 +1762,7 @@ function fffRanked(s, res, start) {
 /* Points: every correct Fastest Fingers First / Scenario answer earns POINTS_PER_Q.
    Ties are broken by total time taken on correct answers (faster wins). */
 const POINTS_PER_Q = 5;
-const scorable = s => isFF(s) && !!fffCorrectText(s);
+const scorable = s => isRace(s) && !!fffCorrectText(s);
 function scoreBoard(p, all) {
   const qs = (p.slides || []).filter(scorable), names = {}, rows = {};
   all.filter(r => r.slideId === '__join' && r.data && r.data.name).sort((a, b) => (a.ts || 0) - (b.ts || 0)).forEach(r => { names[r.voter] = r.data.name; });
@@ -1736,7 +1829,10 @@ function renderFFF(slide, res, st) {
       ${ranked.length ? fffBoard(slide, ranked) : emptyRes('🔔', phase === 'run' ? 'Waiting for the first buzz…' : 'Nobody buzzed in time')}`;
     return { key, html };
   }
-  if (phase === 'idle') {
+  if (phase === 'idle' && !isRace(slide) && slide.mode !== 'buzzer') {
+    html = `<div class="ff-state"><span class="em">🖼️</span><h2>Look closely!</h2><p>${FFF_MODES[slide.mode] || 'Image question'} · ${lim / 1000} seconds to answer</p>
+      ${st.presenter ? `<p style="margin-top:10px">Press <b style="color:var(--ink)">▶ Start timer</b> below to open answers.</p>` : ''}</div>${opts}`;
+  } else if (phase === 'idle') {
     html = `<div class="ff-state"><span class="em">${slide.mode === 'buzzer' ? '🔔' : '⚡'}</span><h2>Fingers ready?</h2><p>${FFF_MODES[slide.mode] || 'Fastest Fingers First'} · ${lim / 1000} seconds · ${slide.mode === 'buzzer' ? 'first to buzz answers first' : slide.mode === 'order' ? 'put them in the right order' : 'fastest answer wins'}</p>
       ${st.presenter ? `<p style="margin-top:10px">Press <b style="color:var(--ink)">${slide.mode === 'buzzer' ? '🔔 Open buzzers' : '▶ Start timer'}</b> below to begin.</p>` : ''}</div>${opts}`;
   } else if (phase === 'run') {
@@ -1745,12 +1841,12 @@ function renderFFF(slide, res, st) {
       <div class="ff-track"><div class="ff-fill" data-k="ffb" style="width:${(left / lim * 100).toFixed(1)}%"></div></div>
       <div class="ff-sub"><b data-k="ffn" data-text>${answered}</b> answered so far</div>${opts}</div>`;
   } else if (phase === 'up') {
-    html = `<div class="ff-state"><span class="em">⏰</span><h2>Time up!</h2><p><b style="color:var(--ink)" data-k="ffn" data-text>${answered}</b> answer${answered === 1 ? '' : 's'} locked in${st.presenter ? ' · press <b style="color:var(--ink)">🏆 Show results</b> to reveal who was fastest' : ''}</p></div>`;
+    html = `<div class="ff-state"><span class="em">⏰</span><h2>Time up!</h2><p><b style="color:var(--ink)" data-k="ffn" data-text>${answered}</b> answer${answered === 1 ? '' : 's'} locked in${st.presenter ? (isRace(slide) ? ' · press <b style="color:var(--ink)">🏆 Show results</b> to reveal who was fastest' : ' · press <b style="color:var(--ink)">📊 Show results</b> to see the answers') : ''}</p></div>`;
   } else {
     const ranked = fffRanked(slide, res, start);
     key += ':' + ranked.map(r => r.id).join(',');
     const ct = fffCorrectText(slide);
-    html = `${ct ? `<div style="text-align:center"><span class="ff-correct">✓ Correct answer: ${esc(ct)}</span></div>` : ''}${fffBoard(slide, ranked)}${sc ? `<details class="sc-look"><summary>📖 Show the scenario again</summary><div class="sc-para long">${scenarioHTML(slide)}</div></details>` : ''}`;
+    html = `${ct ? `<div style="text-align:center"><span class="ff-correct">✓ Correct answer: ${esc(ct)}</span></div>` : ''}${isRace(slide) || slide.mode === 'buzzer' ? fffBoard(slide, ranked) : imgTallyHTML(slide, ranked)}${sc ? `<details class="sc-look"><summary>📖 Show the scenario again</summary><div class="sc-para long">${scenarioHTML(slide)}</div></details>` : ''}`;
   }
   return { key, html };
 }
@@ -1775,7 +1871,7 @@ function sampleResponses(slide) {
       case 'grid': data = { xy: slide.items.map(() => ({ x: slide.gmin + R() * (slide.gmax - slide.gmin), y: slide.gmin + R() * (slide.gmax - slide.gmin) })) }; break;
       case 'form': if (k > 3) continue; data = { values: slide.fields.map(f => f.type === 'textarea' ? 'More hands-on time please!' : 'Sample answer') }; break;
       case 'pin': data = { x: 20 + R() * 60, y: 25 + R() * 50 }; break;
-      case 'fff': case 'scenario': { if (k > 7) continue; const nm = ['Aarav', 'Diya', 'Kabir', 'Ananya', 'Rohan', 'Meera', 'Ishaan', 'Sana'][k];
+      case 'fff': case 'scenario': case 'imgq': { if (k > 7) continue; const nm = ['Aarav', 'Diya', 'Kabir', 'Ananya', 'Rohan', 'Meera', 'Ishaan', 'Sana'][k];
         if (slide.mode === 'mc') data = { name: nm, choice: ri(slide.options.length) };
         else if (slide.mode === 'buzzer') data = { name: nm, buzz: true };
         else if (slide.mode === 'order') data = { name: nm, order: k % 3 === 1 ? fffShuffle((slide.items || []).length, k + 7) : [...(slide.items || []).keys()] };
@@ -1908,7 +2004,8 @@ function viewEditor(code) {
       if (s.type === 'form' && !s.fields.length) return bad('add at least one field');
       if (isFF(s) && s.mode === 'mc' && s.options.length < 2) return bad('add at least 2 options');
       if (isFF(s) && s.mode === 'order' && (s.items || []).length < 2) return bad('add at least 2 words or steps to arrange');
-      if (isFF(s) && !(Number(s.timeLimit) >= 3)) return bad('time limit must be at least 3 seconds');
+      if (s.type === 'imgq' && !(s.images || []).length) return bad('upload at least one image');
+      if (isFF(s) && !(Number(s.type === 'imgq' && s.fff ? s.fffTime : s.timeLimit) >= 3)) return bad('time limit must be at least 3 seconds');
     }
     return true;
   }
@@ -1978,7 +2075,7 @@ function viewEditor(code) {
     if (s.type === 'text') { $('#canvas').innerHTML = `<div class="tx-wrap" style="display:flex;justify-content:center;padding:10px 0">${textSlideHTML(s, ed.p.title)}</div>`; return; }
     if (s.type === 'blank') { $('#canvas').innerHTML = `<div class="wel">${welcomeHTML(ed.p.title)}<div class="wel-wait">⏳ ${esc(s.message || 'Wait for the next question')}</div></div>`; return; }
     const { html } = renderResults(s, sample ? sampleResponses(s) : [], { reveal: s.type === 'guess' && sample, fff: sample ? { start: 1, shown: true } : null, preview: true });
-    $('#canvas').innerHTML = `<h2 class="q-title">${esc(s.question || 'Type your question…')}</h2><div class="res">${html}</div>`;
+    $('#canvas').innerHTML = `<h2 class="q-title">${esc(s.question || 'Type your question…')}</h2>${s.type === 'imgq' ? imgGridHTML(s) : ''}<div class="res">${html}</div>`;
   }
   const listEd = (name, arr, ph) => `${arr.map((v, i) => `<div class="list-row"><span class="bullet" style="background:${PALETTE[i % PALETTE.length]}"></span>
       <input class="input" data-l="${name}" data-i="${i}" value="${esc(v)}" maxlength="80" placeholder="${ph} ${i + 1}"><button class="x" data-del-l="${name}" data-i="${i}" title="Remove">✕</button></div>`).join('')}
@@ -2014,7 +2111,10 @@ function viewEditor(code) {
         <div class="hint">Shown on the big screen and on every mentee's phone. Mentees don't answer anything on this slide.</div>`; break;
       case 'blank': body = `<div class="field"><label>Message</label><input class="input" data-f="message" value="${esc(s.message)}" maxlength="80" placeholder="Wait for the next question"></div>
         <div class="hint">👋 Shows the CognoSpace logo, “Welcome to Mentee-Mentor” and the session name, with this message underneath. Use it as a pause between questions.</div>`; break;
-      case 'scenario': case 'fff': body = (s.type === 'scenario' ? `<div class="field"><label>Scenario paragraph</label><textarea class="input" data-f="scenario" maxlength="4000" rows="9" placeholder="Describe the situation mentees should read…">${esc(s.scenario)}</textarea>
+      case 'scenario': case 'fff': case 'imgq': body = (s.type === 'imgq' ? `<div class="field"><label>Images (${(s.images || []).length}/${MAX_IMAGES})</label>
+          ${(s.images || []).length ? `<div class="ig-ed">${s.images.map((src, i) => `<div><img src="${esc(src)}" alt=""><b>${i + 1}</b><button data-imgdel="${i}" title="Remove">✕</button></div>`).join('')}</div>` : ''}
+          ${(s.images || []).length < MAX_IMAGES ? `<label class="btn sm" style="width:100%">⬆ Upload image${(s.images || []).length ? 's' : '(s)'}<input type="file" accept="image/*" multiple id="imgUp" hidden></label>` : ''}
+          <div class="hint" style="margin-top:6px">🖼️ Add 1 to ${MAX_IMAGES} pictures. Two or more show as a grid. Mentees can tap any picture to enlarge and zoom it.</div></div>` : '') + (s.type === 'scenario' ? `<div class="field"><label>Scenario paragraph</label><textarea class="input" data-f="scenario" maxlength="4000" rows="9" placeholder="Describe the situation mentees should read…">${esc(s.scenario)}</textarea>
           <div class="hint" style="margin-top:6px">📖 Up to 4000 characters. Leave a blank line between paragraphs. <span id="scLen">${String(s.scenario || '').length}</span>/4000</div></div>
         <div class="field"><label>Show the scenario for (seconds)</label><div class="sec-in"><input class="input" type="number" min="5" max="3600" step="1" data-f="readTime" data-type="num" value="${esc(s.readTime)}" placeholder="e.g. 45"><span>sec</span></div></div>
         <div class="hint" style="margin-bottom:16px">⏱ After this time the paragraph disappears for everyone and question 1 starts automatically, Fastest Fingers First style.</div>
@@ -2034,8 +2134,12 @@ function viewEditor(code) {
             ${s.options.map((o, i) => `<option value="${i}" ${s.correct === i ? 'selected' : ''}>${String.fromCharCode(65 + i)} · ${esc(o || 'Option ' + (i + 1))}</option>`).join('')}</select></div>`
         : `<div class="field"><label>Accepted answers</label><input class="input" data-f="answer" value="${esc(s.answer)}" maxlength="120" placeholder="e.g. Ultrasonic, HC-SR04"></div>
           <div class="hint">Separate several accepted answers with commas. Matching ignores capitals and punctuation. Leave empty to rank by speed only.</div>`}
-        <div class="field"><label>Time limit to answer (seconds)</label><div class="sec-in"><input class="input" type="number" min="3" max="3600" step="1" data-f="timeLimit" data-type="num" value="${esc(s.timeLimit)}" placeholder="e.g. 20"><span>sec</span></div></div>${s.type === 'scenario' ? '</div>' : ''}
-        <div class="hint">🏆 Every correct answer earns <b>${POINTS_PER_Q} points</b>. Totals appear on the final leaderboard after the last slide. Open ended and buzzer questions have no correct answer, so they don't score.</div>
+        ${s.type === 'imgq' ? `<div class="field"><label>Question time</label><select class="input" data-f="timeLimit" data-type="num" ${s.fff ? 'disabled' : ''}>${(IMG_TIMES.includes(Number(s.timeLimit)) ? IMG_TIMES : [...IMG_TIMES, Number(s.timeLimit) || 30].sort((a, b) => a - b)).map(n => `<option value="${n}" ${Number(s.timeLimit) === n ? 'selected' : ''}>${n < 60 ? n + ' seconds' : n / 60 + (n === 60 ? ' minute' : ' minutes')}</option>`).join('')}</select></div>
+          <div class="set-box" style="margin-bottom:12px"><label class="chk" style="margin:0"><input type="checkbox" data-f="fff" ${s.fff ? 'checked' : ''}> ⚡ Fastest Fingers First</label>
+          ${s.fff ? `<div class="field" style="margin:10px 0 0"><label>Fastest Fingers time (seconds)</label><div class="sec-in"><input class="input" type="number" min="3" max="3600" step="1" data-f="fffTime" data-type="num" value="${esc(s.fffTime)}" placeholder="e.g. 20"><span>sec</span></div></div>
+            <div class="hint" style="margin:8px 0 0">⚡ This time is used instead of the question time. Answers are ranked by speed and correct ones earn points.</div>` : `<div class="hint" style="margin:8px 0 0">Tick it to make this a speed race with a leaderboard and points.</div>`}</div>`
+        : `<div class="field"><label>Time limit to answer (seconds)</label><div class="sec-in"><input class="input" type="number" min="3" max="3600" step="1" data-f="timeLimit" data-type="num" value="${esc(s.timeLimit)}" placeholder="e.g. 20"><span>sec</span></div></div>`}${s.type === 'scenario' ? '</div>' : ''}
+        ${s.type === 'imgq' && !s.fff ? `<div class="hint">📊 Without Fastest Fingers First, the results show how many mentees picked each answer. No points are given.</div>` : `<div class="hint">🏆 Every correct answer earns <b>${POINTS_PER_Q} points</b>. Totals appear on the final leaderboard after the last slide. Open ended and buzzer questions have no correct answer, so they don't score.</div>`}
         <div class="hint">⚡ ${ed.p.askName ? 'Names are on for this presentation, so the leaderboard shows <b>who</b> answered first.' : 'Names are off, so the leaderboard shows <b>Anonymous</b>. Switch on <b>👤 Ask names</b> at the top to show names.'}</div>`; break;
       case 'pin': body = `<div class="field"><label>Image</label><img class="imgprev" src="${esc(s.image)}" alt="">
           <input class="input" data-f="imageUrl" placeholder="Paste image URL…" value="${s.image.startsWith('data:') ? '' : esc(s.image)}" style="margin-bottom:8px">
@@ -2056,6 +2160,7 @@ function viewEditor(code) {
       else if (t.dataset.f) { s[t.dataset.f] = t.type === 'checkbox' ? t.checked : t.dataset.type === 'num' ? Number(t.value) : t.value;
         if (t.dataset.f === 'scenario') { const n = $('#scLen', panel); if (n) n.textContent = t.value.length; }
         if (t.dataset.f === 'text') { const n = $('#txLen', panel); if (n) n.textContent = t.value.length; }
+        if (t.dataset.f === 'fff') { dirty(); paintPanel(); paintCanvas(); refreshThumb(); return; }
         if (isFF(s) && t.dataset.f === 'mode') { if (s.mode === 'mc' && (!s.options || s.options.length < 2)) s.options = ['Option A', 'Option B'];
           if (s.mode === 'order' && (!s.items || s.items.length < 2)) { s.items = ['Sensors', 'collect', 'data', 'from', 'the', 'environment']; s.arrange = s.arrange || 'sentence'; } dirty(); paintPanel(); paintCanvas(); return; } }
       else if (t.dataset.l) { s[t.dataset.l][+t.dataset.i] = t.value;
@@ -2065,7 +2170,8 @@ function viewEditor(code) {
       dirty(); paintCanvas(); refreshThumb();
     };
     panel.onclick = e => {
-      const t = e.target.closest('[data-qsel],[data-qadd],[data-qdel]') || e.target;
+      const t = e.target.closest('[data-qsel],[data-qadd],[data-qdel],[data-imgdel]') || e.target;
+      if (t.dataset.imgdel !== undefined) { s.images.splice(+t.dataset.imgdel, 1); dirty(); paintPanel(); paintCanvas(); toast('Image removed'); return; }
       if (s.type === 'scenario' && t.dataset.qsel !== undefined) { ed.qsel = +t.dataset.qsel; paintPanel(); paintCanvas(); return; }
       if (s.type === 'scenario' && t.hasAttribute('data-qadd')) { s.questions.push(newScenarioQ({ question: '' })); ed.qsel = s.questions.length - 1; dirty(); paintPanel(); paintCanvas(); refreshThumb(); $('[data-f="question"]', panel)?.focus(); return; }
       if (s.type === 'scenario' && t.hasAttribute('data-qdel')) { if (s.questions.length <= 1) return; s.questions.splice(ed.qsel, 1); ed.qsel = Math.max(0, ed.qsel - 1); dirty(); paintPanel(); paintCanvas(); refreshThumb(); toast('Question removed'); return; }
@@ -2079,6 +2185,15 @@ function viewEditor(code) {
     $('#typeSel').onchange = e => {
       const ns = newSlide(e.target.value); ns.id = s.id; if (s.question && ns.type !== 'scenario') ns.question = s.question;
       ed.p.slides[ed.sel] = ns; dirty(); paintSide(); paintCanvas(); paintPanel();
+    };
+    const iu = $('#imgUp');
+    if (iu) iu.onchange = async () => {
+      const files = [...iu.files].slice(0, MAX_IMAGES - (s.images || []).length); if (!files.length) return;
+      s.images = s.images || []; let bad = 0;
+      for (const f of files) { try { s.images.push(await compressImage(f, 1100, .74)); } catch { bad++; } }
+      dirty(); paintPanel(); paintCanvas();
+      toast(bad ? `Could not read ${plural(bad, 'image')}` : `${plural(files.length - bad, 'image')} added 🖼️`, bad ? 'err' : 'ok');
+      if (iu.files.length > files.length) toast(`Only ${MAX_IMAGES} images per question`, 'err');
     };
     const up = $('#pinUp');
     if (up) up.onchange = async () => {
@@ -2296,7 +2411,7 @@ function viewPresent(code) {
       const c = $('#cnt'); if (c) c.textContent = 0; return;
     }
     $('#stage').innerHTML = `<div class="stage-anim"><span class="q-chip">${ticon(s.type)} ${typeLabel(s)}</span>
-      <h1 class="q-title">${esc(s.question)}</h1><div class="res" id="res"></div></div>`;
+      <h1 class="q-title">${esc(s.question)}</h1>${s.type === 'imgq' ? imgGridHTML(s) : ''}<div class="res" id="res"></div></div>`;
     $('#res').onclick = e => { const b = e.target.closest('[data-ans]'); if (b) Store.setAnswered(code, b.dataset.ans, b.dataset.v === '1'); };
     draw();
   }
@@ -2350,7 +2465,7 @@ function viewPresent(code) {
         ${isFF(s) ? (() => { const fs = (p.fffState || {})[s.id] || {}, ph = fffPhase(s);
           if (scRead(s) && !fs.start) return fs.read ? `<button class="btn sm mint" id="b-skip">⏭ Skip to question</button>` : `<button class="btn sm mint" id="b-read">📖 Show scenario</button>`;
           return `<button class="btn sm ${fs.start ? '' : 'mint'}" id="b-fstart" ${fs.start ? 'disabled' : ''}>${!fs.start ? (s.mode === 'buzzer' ? '🔔 Open buzzers' : '▶ Start timer') : ph === 'run' ? '⏱ Running…' : '⏰ Time up'}</button>
-          ${s.mode === 'buzzer' ? '' : `<button class="btn sm ${fs.shown ? 'on' : 'primary'}" id="b-fshow">${fs.shown ? '🙈 Hide leaderboard' : '🏆 Show results'}</button>`}`; })() : ''}
+          ${s.mode === 'buzzer' ? '' : `<button class="btn sm ${fs.shown ? 'on' : 'primary'}" id="b-fshow">${fs.shown ? (isRace(s) ? '🙈 Hide leaderboard' : '🙈 Hide results') : isRace(s) ? '🏆 Show results' : '📊 Show results'}</button>`}`; })() : ''}
         ${s.type === 'guess' ? `<button class="btn sm ${p.reveal ? 'on' : 'mint'}" id="b-rev">${p.reveal ? 'Hide answer' : '🎯 Reveal answer'}</button>` : ''}
         <button class="btn sm" id="b-reset">↺ Reset</button>
         <button class="btn sm" id="b-fs" title="F">⛶</button></div>`;
@@ -2480,6 +2595,7 @@ function viewAudience(rawCode) {
     if (!fs.start) {
       am.innerHTML = `<div class="card aud-card">${head(s)}${who(true)}<div class="ff-state" style="padding:20px 0"><span class="em">🏁</span><h2 style="font-size:28px">Get ready!</h2>
         <p>${s.mode === 'buzzer' ? 'The buzzer unlocks when the presenter opens it.<br>Hit it <b style="color:var(--ink)">first</b> to get the first chance to answer! 🔔'
+          : !isRace(s) ? `Answers open when the presenter starts the timer.<br>You'll have <b style="color:var(--ink)">${lim / 1000} seconds</b>. Tap a picture to zoom in and look closely 🔍`
           : `Answers open when the presenter starts the timer.<br>You'll have <b style="color:var(--ink)">${lim / 1000} seconds</b> — be quick! ${s.mode === 'mc' ? 'One tap answers.' : s.mode === 'order' ? 'Tap the pieces in the right order.' : ''}`}</p></div></div>`;
       return bindWho();
     }
@@ -2610,6 +2726,13 @@ function viewAudience(rawCode) {
       const el = $('#ffRes'); if (!el) return;
       const ranked = fffRanked(s, list, fs.start || 0), idx = ranked.findIndex(r => r.voter === vid), me = ranked[idx];
       const ct = fffCorrectText(s);
+      if (!isRace(s) && s.mode !== 'buzzer') {
+        el.innerHTML = `${me ? `<div class="ff-me">Your answer<b>${esc(fffAnswer(s, me.data))}</b><span class="muted" style="font-weight:800">${me.ok === true ? '✓ correct 🎉' : me.ok === false ? '✗ not quite' : 'Thanks for answering!'}</span></div>`
+          : `<div class="ff-me" style="font-weight:800;color:var(--muted)">You didn't answer this one in time ⏰</div>`}
+          ${ct ? `<div style="text-align:center"><span class="ff-correct">✓ ${esc(ct)}</span></div>` : ''}
+          <h4 style="margin:4px 0 10px;font-size:18px">📊 Everyone's answers</h4>${imgTallyHTML(s, ranked)}`;
+        return;
+      }
       el.innerHTML = `${me ? `<div class="ff-me">You finished<b>#${idx + 1}${idx < 3 ? ' ' + ['🥇', '🥈', '🥉'][idx] : ''}</b>
           <span class="muted" style="font-weight:800">${esc(fffAnswer(s, me.data))}${me.ms !== null ? ' · ' + (me.ms / 1000).toFixed(2) + 's' : ''}${me.ok === true ? ` · ✓ correct · <b style="color:var(--mint)">+${POINTS_PER_Q} points</b>` : me.ok === false ? ' · ✗ wrong · +0 points' : ''}</span></div>`
         : `<div class="ff-me" style="font-weight:800;color:var(--muted)">You didn't answer this round in time ⏰</div>`}
@@ -2621,7 +2744,7 @@ function viewAudience(rawCode) {
   function votedKey(s, reset) { return `mm_v_${code}_${s.id}_${reset}`; }
   function head(s) {
     return `<div class="progress">${p.slides.map((_, i) => `<i class="${i === (p.current || 0) ? 'on' : ''}"></i>`).join('')}</div>
-      <span class="q-chip">${ticon(s.type)} ${typeLabel(s)}</span><h2 class="q-title">${esc(s.question)}</h2>`;
+      <span class="q-chip">${ticon(s.type)} ${typeLabel(s)}</span><h2 class="q-title">${esc(s.question)}</h2>${s.type === 'imgq' ? imgGridHTML(s) : ''}`;
   }
   function thanks(s, reset, again) {
     $('#am').innerHTML = `<div class="card aud-card"><div class="thanks"><div class="check"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
