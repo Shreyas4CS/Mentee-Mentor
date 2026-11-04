@@ -1576,6 +1576,14 @@ body{overflow-x:visible}
 .pv ::-webkit-scrollbar{display:none}
 .pv .wel::before{top:46%}
 
+/* ---------- Phones: the big title always fits inside the mentee card ---------- */
+.aud-card{container-type:inline-size}
+.aud .aud-card .wel-app{font-size:clamp(24px,13.9cqi,62px);white-space:nowrap}
+.aud .aud-card .wel-by{font-size:clamp(9px,2.9cqi,12px);letter-spacing:.14em;text-wrap:balance;line-height:1.7}
+.aud .aud-card .wel-by::before,.aud .aud-card .wel-by::after{margin:0 7px}
+.aud .aud-card .wel-logo{height:min(64px,16cqi);width:auto;max-width:100%}
+.join-card h1{text-wrap:balance}
+
 /* =================== FLUX DASHBOARD LAYER =================== */
 /* Dashboard look: dark rounded frame on a pale-lime page, light-grey panels,
    flat white cards, lime + lavender + black accents, Poppins. */
@@ -1968,6 +1976,9 @@ body,body:not(#x){padding:0}
 
 .pv{--fade:var(--panel)}
 .pv .res[data-more]:not([data-more=""])::after{background:var(--ink);color:var(--lime);font-weight:600}
+.aud .aud-card .wel-app{font-size:clamp(22px,12.5cqi,58px)}
+.aud .aud-card .wel-by::before,.aud .aud-card .wel-by::after{margin:0 7px 2px}
+.join-card h1{line-height:1.25}
 </style>
 </head>
 <body>
